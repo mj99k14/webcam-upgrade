@@ -12,7 +12,7 @@
     </button>
 
     <!-- 실시간 영상 + 캔버스 + 시간 -->
-    <div v-if="showMeasurementArea" class="measurement-area">
+    <div v-show="showMeasurementArea && !measurementFinished" class="measurement-area">
       <div class="video-canvas">
         <video ref="video" autoplay muted playsinline></video>
         <canvas ref="canvas"></canvas>
