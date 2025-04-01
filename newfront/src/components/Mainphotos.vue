@@ -1,65 +1,84 @@
 <template>
-  <div class="center">
+  <div class="main">
     <h2>자세 측정</h2>
+    <button @click="toggleMeasurement">
+      {{ isCapturing ? '📴 측정 종료' : '📸 측정 시작' }}
+    </button>
 
-    <div v-if="!measurementFinished">
-      <video ref="video" autoplay muted playsinline></video>
-      <canvas ref="canvas"></canvas>
-      <button @click="toggleMeasurement">
-        {{ isCapturing ? '📴 측정 종료' : '📸 측정 시작' }}
-      </button>
-      <p v-if="isCapturing">⏱ 측정 중: {{ measurementTime }}초</p>
+    <div v-if="showMeasurementArea">
+      <div class="video-wrapper">
+        <video ref="video" autoplay muted playsinline></video>
+      </div>
+
+      <div class="canvas-wrapper">
+        <canvas ref="canvas"></canvas>
+      </div>
+
+      <p>⏱ 측정 시간: {{ formattedTime }}</p>
     </div>
 
-    <div v-else>
-      <p>📝 평균 목 각도: {{ averageNeck.toFixed(2) }}°</p>
+    <div v-if="measurementFinished" class="result">
+      <p>✏️ 평균 목 각도: {{ averageNeck.toFixed(2) }}°</p>
       <p>📏 최대 목 각도: {{ maxNeck.toFixed(2) }}°</p>
-      <p>⏱ 총 측정 시간: {{ measurementTime }}초</p>
       <p>📸 거북목일 때 사진 저장 완료</p>
-      <img v-if="worstFrameUrl" :src="worstFrameUrl" alt="거북목 사진" style="max-width: 100%; margin-top: 12px;" />
+      <img v-if="worstFrameUrl" :src="worstFrameUrl" alt="거북목 사진" />
       <button @click="restartMeasurement">다시 측정하기</button>
     </div>
   </div>
 </template>
 
 <script>
+import { nextTick } from "vue";
+
 let pose = null;
 let camera = null;
 
 export default {
-  name: 'MainPhotos',
   data() {
     return {
       isCapturing: false,
+      showMeasurementArea: false,
       measurementFinished: false,
       neckAngles: [],
       capturedFrames: [],
       averageNeck: 0,
       maxNeck: 0,
       worstFrameUrl: '',
-      measurementTime: 0,
-      startTime: null,
+      elapsedSeconds: 0,
+      timerInterval: null
     };
   },
+  computed: {
+    formattedTime() {
+      const minutes = Math.floor(this.elapsedSeconds / 60);
+      const seconds = this.elapsedSeconds % 60;
+      return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+    }
+  },
   methods: {
-    async toggleMeasurement() {
-      if (this.isCapturing) {
-        await this.stopCamera();
-      } else {
-        await this.startCamera();
-      }
+    toggleMeasurement() {
+      this.isCapturing ? this.stopCamera() : this.startCamera();
     },
 
     async startCamera() {
+      this.neckAngles = [];
+      this.capturedFrames = [];
+      this.measurementFinished = false;
+      this.showMeasurementArea = true;
+      this.elapsedSeconds = 0;
+
+      await nextTick(); // DOM 완전히 렌더링되기까지 기다림
+
       const video = this.$refs.video;
       const canvas = this.$refs.canvas;
       const ctx = canvas.getContext("2d");
 
-      this.isCapturing = true;
-      this.measurementFinished = false;
-      this.neckAngles = [];
-      this.capturedFrames = [];
-      this.startTime = Date.now();
+      if (!video || !canvas || !ctx) {
+        alert("비디오 또는 캔버스를 찾을 수 없습니다.");
+        return;
+      }
+
+      this.timerInterval = setInterval(() => this.elapsedSeconds++, 1000);
 
       pose = new window.Pose({
         locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5/${file}`
@@ -73,28 +92,31 @@ export default {
       });
 
       pose.onResults((results) => {
-        const elapsed = Math.floor((Date.now() - this.startTime) / 1000);
-        this.measurementTime = elapsed;
-
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.drawImage(results.image, 0, 0, canvas.width, canvas.height);
 
         if (results.poseLandmarks) {
-          // 💡 선 및 관절 표시
-          window.drawConnectors(ctx, results.poseLandmarks, window.POSE_CONNECTIONS, {
-            color: "#0077cc", lineWidth: 4
-          });
-          window.drawLandmarks(ctx, results.poseLandmarks, {
-            color: "#00cc99", lineWidth: 2
-          });
+          const ear = results.poseLandmarks[7];        // LEFT_EAR
+          const shoulder = results.poseLandmarks[11];  // LEFT_SHOULDER
 
-          const leftShoulder = results.poseLandmarks[11];
-          const rightShoulder = results.poseLandmarks[12];
-          const neckAngle = Math.abs(leftShoulder.y - rightShoulder.y) * 100;
+          // 그리기
+          ctx.beginPath();
+          ctx.strokeStyle = "deepskyblue"; // 선 색상 변경
+          ctx.lineWidth = 4;
+          ctx.moveTo(ear.x * canvas.width, ear.y * canvas.height);
+          ctx.lineTo(shoulder.x * canvas.width, shoulder.y * canvas.height);
+          ctx.stroke();
+
+          // 목 각도 계산
+          const dx = (ear.x - shoulder.x) * canvas.width;
+          const dy = (ear.y - shoulder.y) * canvas.height;
+          const angle = Math.atan2(dy, dx) * (180 / Math.PI);
+          const neckAngle = Math.abs(angle);
           this.neckAngles.push(neckAngle);
 
+          // 프레임 저장
           const imageCanvas = document.createElement('canvas');
           imageCanvas.width = canvas.width;
           imageCanvas.height = canvas.height;
@@ -115,9 +137,13 @@ export default {
       });
 
       camera.start();
+      this.isCapturing = true;
     },
 
     async stopCamera() {
+      clearInterval(this.timerInterval);
+      this.timerInterval = null;
+
       if (camera && camera.stop) camera.stop();
       if (pose && pose.close) pose.close();
 
@@ -137,7 +163,8 @@ export default {
         body: JSON.stringify({
           user_id: userId,
           average_neck_angle: avg,
-          max_neck_angle: max
+          max_neck_angle: max,
+          duration: this.elapsedSeconds
         })
       });
 
@@ -153,17 +180,12 @@ export default {
       const mime = dataUrl.split(',')[0].split(':')[1].split(';')[0];
       const ab = new ArrayBuffer(byteString.length);
       const ia = new Uint8Array(ab);
-      for (let i = 0; i < byteString.length; i++) {
-        ia[i] = byteString.charCodeAt(i);
-      }
+      for (let i = 0; i < byteString.length; i++) ia[i] = byteString.charCodeAt(i);
       const blob = new Blob([ab], { type: mime });
 
       const formData = new FormData();
       const user = JSON.parse(localStorage.getItem('user'));
-      const userId = user?.user_id;
-      if (!userId) return alert("사용자 정보 없음");
-
-      formData.append('user_id', userId);
+      formData.append('user_id', user?.user_id);
       formData.append('photo', blob, 'turtle_neck.jpg');
       formData.append('neck_angle', this.averageNeck);
 
@@ -173,9 +195,7 @@ export default {
           body: formData
         });
         const data = await res.json();
-        if (!data.success) {
-          alert('업로드 실패: ' + data.message);
-        }
+        if (!data.success) alert('업로드 실패: ' + data.message);
       } catch (err) {
         console.error("❌ 업로드 실패", err);
       }
@@ -183,7 +203,7 @@ export default {
 
     restartMeasurement() {
       this.measurementFinished = false;
-      this.measurementTime = 0;
+      this.showMeasurementArea = false;
     }
   },
 
@@ -207,27 +227,30 @@ export default {
 </script>
 
 <style scoped>
-.center {
-  text-align: center;
+.main {
   padding: 20px;
-  background-color: #fff9e6;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+.video-wrapper {
+  margin-top: 20px;
 }
 video {
-  display: block;
   width: 640px;
   height: 480px;
-  border: 1px solid #aaa;
-  margin: 10px auto;
+  border: 2px solid #aaa;
+}
+.canvas-wrapper {
+  margin-top: 20px;
 }
 canvas {
-  display: block;
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
   width: 640px;
   height: 480px;
-  pointer-events: none;
+  border: 2px solid #6cf;
+}
+.result img {
+  max-width: 100%;
+  margin-top: 12px;
+  border-radius: 6px;
+  box-shadow: 0 0 6px rgba(0,0,0,0.2);
 }
 </style>

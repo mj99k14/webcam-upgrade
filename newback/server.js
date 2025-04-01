@@ -7,7 +7,7 @@ const cookieParser = require("cookie-parser");
 const authRoutes = require("./routes/authRoutes");
 const userRoutes = require("./routes/userRoutes");
 const photoRoutes = require("./routes/photoRoutes");
-const postureRoutes = require("./routes/postureRoutes"); // ✅ 자세 측정 라우터 추가
+const postureRoutes = require("./routes/postureRoutes"); //자세 측정 라우터 추가
 
 const app = express();
 const PORT = process.env.PORT || 5000;
