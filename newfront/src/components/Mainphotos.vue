@@ -1,27 +1,30 @@
 <template>
   <div class="main">
+    <!-- ✅ 항상 맨 위에 결과 사진 표시 -->
+    <div v-if="worstFrameUrl" class="result-photo">
+      <img :src="worstFrameUrl" alt="거북목 사진" />
+    </div>
+
+    <!-- 제목과 측정 버튼 -->
     <h2>자세 측정</h2>
     <button @click="toggleMeasurement">
       {{ isCapturing ? '📴 측정 종료' : '📸 측정 시작' }}
     </button>
 
-    <div v-if="showMeasurementArea">
-      <div class="video-wrapper">
+    <!-- 실시간 영상 + 캔버스 + 시간 -->
+    <div v-if="showMeasurementArea" class="measurement-area">
+      <div class="video-canvas">
         <video ref="video" autoplay muted playsinline></video>
-      </div>
-
-      <div class="canvas-wrapper">
         <canvas ref="canvas"></canvas>
       </div>
-
       <p>⏱ 측정 시간: {{ formattedTime }}</p>
     </div>
 
-    <div v-if="measurementFinished" class="result">
+    <!-- 결과 정보 -->
+    <div v-if="measurementFinished" class="result-info">
       <p>✏️ 평균 목 각도: {{ averageNeck.toFixed(2) }}°</p>
       <p>📏 최대 목 각도: {{ maxNeck.toFixed(2) }}°</p>
       <p>📸 거북목일 때 사진 저장 완료</p>
-      <img v-if="worstFrameUrl" :src="worstFrameUrl" alt="거북목 사진" />
       <button @click="restartMeasurement">다시 측정하기</button>
     </div>
   </div>
@@ -67,7 +70,7 @@ export default {
       this.showMeasurementArea = true;
       this.elapsedSeconds = 0;
 
-      await nextTick(); // DOM 완전히 렌더링되기까지 기다림
+      await nextTick();
 
       const video = this.$refs.video;
       const canvas = this.$refs.canvas;
@@ -101,22 +104,19 @@ export default {
           const ear = results.poseLandmarks[7];        // LEFT_EAR
           const shoulder = results.poseLandmarks[11];  // LEFT_SHOULDER
 
-          // 그리기
           ctx.beginPath();
-          ctx.strokeStyle = "deepskyblue"; // 선 색상 변경
+          ctx.strokeStyle = "deepskyblue";
           ctx.lineWidth = 4;
           ctx.moveTo(ear.x * canvas.width, ear.y * canvas.height);
           ctx.lineTo(shoulder.x * canvas.width, shoulder.y * canvas.height);
           ctx.stroke();
 
-          // 목 각도 계산
           const dx = (ear.x - shoulder.x) * canvas.width;
           const dy = (ear.y - shoulder.y) * canvas.height;
           const angle = Math.atan2(dy, dx) * (180 / Math.PI);
           const neckAngle = Math.abs(angle);
           this.neckAngles.push(neckAngle);
 
-          // 프레임 저장
           const imageCanvas = document.createElement('canvas');
           imageCanvas.width = canvas.width;
           imageCanvas.height = canvas.height;
@@ -149,7 +149,6 @@ export default {
 
       const avg = this.neckAngles.reduce((a, b) => a + b, 0) / this.neckAngles.length;
       const max = Math.max(...this.neckAngles);
-
       this.averageNeck = avg;
       this.maxNeck = max;
 
@@ -231,26 +230,26 @@ export default {
   padding: 20px;
   text-align: center;
 }
-.video-wrapper {
-  margin-top: 20px;
+.result-photo img {
+  width: 640px;
+  border: 3px solid skyblue;
+  margin-bottom: 20px;
 }
-video {
+.video-canvas {
+  position: relative;
+  display: inline-block;
+}
+video, canvas {
   width: 640px;
   height: 480px;
-  border: 2px solid #aaa;
-}
-.canvas-wrapper {
-  margin-top: 20px;
+  border: 2px solid #ccc;
 }
 canvas {
-  width: 640px;
-  height: 480px;
-  border: 2px solid #6cf;
+  position: absolute;
+  top: 0;
+  left: 0;
 }
-.result img {
-  max-width: 100%;
-  margin-top: 12px;
-  border-radius: 6px;
-  box-shadow: 0 0 6px rgba(0,0,0,0.2);
+.result-info {
+  margin-top: 20px;
 }
 </style>
