@@ -175,30 +175,43 @@ export default {
     },
 
     async uploadToServer(dataUrl) {
-      const byteString = atob(dataUrl.split(',')[1]);
-      const mime = dataUrl.split(',')[0].split(':')[1].split(';')[0];
-      const ab = new ArrayBuffer(byteString.length);
-      const ia = new Uint8Array(ab);
-      for (let i = 0; i < byteString.length; i++) ia[i] = byteString.charCodeAt(i);
-      const blob = new Blob([ab], { type: mime });
-
-      const formData = new FormData();
-      const user = JSON.parse(localStorage.getItem('user'));
-      formData.append('user_id', user?.user_id);
-      formData.append('photo', blob, 'turtle_neck.jpg');
-      formData.append('neck_angle', this.averageNeck);
-
       try {
-        const res = await fetch('http://210.101.236.158:5000/api/photos/turtleneck', {
+        // ✅ Base64 → Blob 변환
+        const byteString = atob(dataUrl.split(',')[1]);
+        const mime = dataUrl.split(',')[0].split(':')[1].split(';')[0];
+        const ab = new ArrayBuffer(byteString.length);
+        const ia = new Uint8Array(ab);
+        for (let i = 0; i < byteString.length; i++) {
+          ia[i] = byteString.charCodeAt(i);
+        }
+        const blob = new Blob([ab], { type: mime });
+
+        // ✅ FormData 구성
+        const formData = new FormData();
+        const user = JSON.parse(localStorage.getItem('user'));
+        formData.append('user_id', user?.user_id);
+        formData.append('photo', blob, 'turtle_neck.jpg');
+        formData.append('neck_angle', this.averageNeck.toFixed(2));
+        formData.append('shoulder_angle', 0); // shoulder_angle 없으면 0으로 대체
+
+        // ✅ 업로드 요청
+        const res = await fetch('http://210.101.236.158:5000/api/photos/upload', {
           method: 'POST',
-          body: formData
+          body: formData, // 🔥 Content-Type 생략해야 boundary 자동 생성됨
         });
+
         const data = await res.json();
-        if (!data.success) alert('업로드 실패: ' + data.message);
+        if (!data.success) {
+          alert('업로드 실패: ' + data.message);
+        } else {
+          console.log("✅ 업로드 성공:", data.photo_url);
+        }
       } catch (err) {
         console.error("❌ 업로드 실패", err);
+        alert("사진 업로드 중 오류 발생");
       }
     },
+
 
     restartMeasurement() {
       this.measurementFinished = false;
