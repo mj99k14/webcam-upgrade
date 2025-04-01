@@ -1,0 +1,28 @@
+{
+  "name": "newfront",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@mediapipe/camera_utils": "^0.3.1675466862",
+    "@mediapipe/drawing_utils": "^0.3.1675466124",
+    "@mediapipe/pose": "^0.5.1675469404",
+    "axios": "^1.8.2",
+    "chart.js": "^4.4.8",
+    "dotenv": "^16.4.7",
+    "pinia": "^3.0.1",
+    "vue": "^3.5.13",
+    "vue-chartjs": "^5.3.2",
+    "vue-file-agent": "^1.7.3",
+    "vue-router": "^4.5.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.2.1",
+    "vite": "^6.2.3"
+  }
+}
