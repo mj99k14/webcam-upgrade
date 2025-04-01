@@ -33,7 +33,7 @@
 
 <script>
 import axios from "axios";
-import { ref, onMounted, watch, computed } from "vue";
+import { ref, onMounted, computed } from "vue";
 import { useRouter } from "vue-router";
 import UserInfo from '../components/UserInfo.vue';
 import PhotoList from '../components/PhotoList.vue';
@@ -99,43 +99,20 @@ export default {
       try {
         const res = await axios.get(`http://210.101.236.158:5000/api/photos?user_id=${user.value.id}`);
         photos.value = res.data;
+
+        // ✅ 가장 최신 날짜 자동 선택
+        const latestDate = photos.value[0]?.uploaded_at?.split("T")[0];
+        if (latestDate) {
+          selectedDate.value = latestDate;
+        }
       } catch (err) {
         console.error("🚨 사진 목록 오류:", err);
       }
     };
 
+
     const handlePhotoUploaded = () => {
-      fetchPhotos();
-    };
-
-    const handleMeasurementFinished = async (frames) => {
-      const formData = new FormData();
-      const userId = user.value?.id;
-      if (!userId) return;
-
-      frames.forEach((dataUrl, index) => {
-        const byteString = atob(dataUrl.split(',')[1]);
-        const mime = dataUrl.split(',')[0].split(':')[1].split(';')[0];
-        const ab = new ArrayBuffer(byteString.length);
-        const ia = new Uint8Array(ab);
-        for (let i = 0; i < byteString.length; i++) {
-          ia[i] = byteString.charCodeAt(i);
-        }
-        const blob = new Blob([ab], { type: mime });
-        formData.append("photos", blob, `frame_${index}.jpg`);
-      });
-      formData.append("user_id", userId);
-
-      try {
-        const res = await axios.post("http://210.101.236.158:5000/api/photos/batch", formData);
-        if (res.data.success) {
-          await fetchPhotos();
-          bestPhoto.value = res.data.bestPhoto;
-          worstPhoto.value = res.data.worstPhoto;
-        }
-      } catch (err) {
-        console.error("❌ 업로드 오류:", err);
-      }
+      fetchPhotos(); // ✅ 업로드 후 자동 갱신
     };
 
     const deletePhoto = async (id) => {
@@ -143,7 +120,7 @@ export default {
         const res = await axios.delete(`http://210.101.236.158:5000/api/photos/${id}`);
         if (res.data.success) {
           alert("사진이 삭제되었습니다.");
-          fetchPhotos();
+          fetchPhotos(); // ✅ 삭제 후 목록 갱신
         }
       } catch (err) {
         console.error("🚨 사진 삭제 오류:", err);
@@ -192,7 +169,6 @@ export default {
       startCamera,
       cameraActive,
       handlePhotoUploaded,
-      handleMeasurementFinished,
       formatTime,
       selectedDate,
       filteredPhotos,
@@ -268,6 +244,11 @@ export default {
   }
 }
 
+.photo-list-section {
+  flex: 2;
+  min-width: 380px;
+}
+
 .full-width {
   flex-basis: 100%;
   width: 100%;
@@ -277,26 +258,5 @@ export default {
   padding: 20px;
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-}
-
-.photo-list-section {
-  flex: 2;
-  min-width: 380px;
-}
-
-.user-stats {
-  margin-top: 20px;
-  font-size: 14px;
-  color: #333;
-  line-height: 1.6;
-  background-color: #f8fbff;
-  padding: 12px;
-  border-radius: 8px;
-  border: 1px solid #ddeeff;
-}
-.user-stats hr {
-  margin-bottom: 12px;
-  border: none;
-  border-top: 1px solid #ccc;
 }
 </style>

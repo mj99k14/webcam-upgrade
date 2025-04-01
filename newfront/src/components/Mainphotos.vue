@@ -205,6 +205,7 @@ export default {
           alert('업로드 실패: ' + data.message);
         } else {
           console.log("✅ 업로드 성공:", data.photo_url);
+          this.$emit("handlePhotoUploaded");//  사진 업로드 후 컴포넌트에 알림 보내기
         }
       } catch (err) {
         console.error("❌ 업로드 실패", err);
