@@ -33,7 +33,7 @@
 
 <script>
 import axios from "axios";
-import { ref, onMounted, computed } from "vue";
+import { ref, onMounted, computed, watch } from "vue";
 import { useRouter } from "vue-router";
 import UserInfo from '../components/UserInfo.vue';
 import PhotoList from '../components/PhotoList.vue';
@@ -56,6 +56,22 @@ export default {
     const selectedPhoto = ref(null);
     const cameraActive = ref(false);
     const selectedDate = ref("");
+
+// ✅ 그리고 나서 watch 설정
+    watch(selectedDate, (newDate) => {
+      if (!newDate) return;
+
+      const photosForDate = photos.value.filter(photo => {
+        const dateOnly = new Date(photo.uploaded_at).toISOString().split("T")[0];
+        return dateOnly === newDate;
+      });
+
+      const best = photosForDate.find(p => p.type === 'best');
+      const worst = photosForDate.find(p => p.type === 'worst');
+
+      selectedPhoto.value = best || worst || photosForDate[0] || null;
+    });
+
     const bestPhoto = ref(null);
     const worstPhoto = ref(null);
 
@@ -104,15 +120,21 @@ export default {
         const res = await axios.get(`http://210.101.236.158:5000/api/photos?user_id=${user.value.id}`);
         photos.value = res.data;
 
+        // 최신 날짜 기준 설정
         const sorted = [...photos.value].sort((a, b) => new Date(b.uploaded_at) - new Date(a.uploaded_at));
         const latestDate = sorted[0]?.uploaded_at?.split("T")[0];
         if (latestDate) {
           selectedDate.value = latestDate;
+
+          // ✅ 최신 날짜 중 첫 번째 사진을 자동 선택
+          const latestPhotos = sorted.filter(p => p.uploaded_at.split('T')[0] === latestDate);
+          selectedPhoto.value = latestPhotos[0] || null;
         }
       } catch (err) {
         console.error("🚨 사진 목록 오류:", err);
       }
     };
+
 
     const handlePhotoUploaded = () => {
       fetchPhotos();

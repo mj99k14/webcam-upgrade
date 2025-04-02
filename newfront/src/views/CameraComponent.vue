@@ -24,13 +24,29 @@ export default {
     };
   },
   mounted() {
-    const video = this.$refs.video;
-    const canvas = this.$refs.canvas;
+    this.loadScripts().then(() => {
+      this.initializeCamera();
+    });
+  },
+  methods: {
+    loadScripts() {
+      const load = src => new Promise(resolve => {
+        const script = document.createElement('script');
+        script.src = src;
+        script.onload = resolve;
+        document.head.appendChild(script);
+      });
 
-    let scriptsLoaded = 0;
-    const checkAllScriptsLoaded = () => {
-      scriptsLoaded++;
-      if (scriptsLoaded < 3) return;
+      return Promise.all([
+        load('https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5/pose.js'),
+        load('https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js'),
+        load('https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js')
+      ]);
+    },
+
+    initializeCamera() {
+      const video = this.$refs.video;
+      const canvas = this.$refs.canvas;
 
       const pose = new window.Pose({
         locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5/${file}`
@@ -68,27 +84,8 @@ export default {
         this.cameraStatus = "❌ 카메라 시작 실패!";
         console.error("❌ camera.start() 에러", e);
       }
-    };
+    },
 
-    // 스크립트 로드
-    const scriptPose = document.createElement('script');
-    const scriptDrawing = document.createElement('script');
-    const scriptCamera = document.createElement('script');
-
-    scriptPose.src = 'https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5/pose.js';
-    scriptDrawing.src = 'https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js';
-    scriptCamera.src = 'https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js';
-
-    scriptPose.onload = checkAllScriptsLoaded;
-    scriptDrawing.onload = checkAllScriptsLoaded;
-    scriptCamera.onload = checkAllScriptsLoaded;
-
-    document.head.appendChild(scriptPose);
-    document.head.appendChild(scriptDrawing);
-    document.head.appendChild(scriptCamera);
-  },
-
-  methods: {
     startMeasurement() {
       const canvas = this.$refs.canvas;
       this.capturedFrames = [];
