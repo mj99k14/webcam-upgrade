@@ -95,38 +95,47 @@ export default {
       });
 
       pose.onResults((results) => {
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.drawImage(results.image, 0, 0, canvas.width, canvas.height);
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(results.image, 0, 0, canvas.width, canvas.height);
 
-        if (results.poseLandmarks) {
-          const ear = results.poseLandmarks[7];        // LEFT_EAR
-          const shoulder = results.poseLandmarks[11];  // LEFT_SHOULDER
+      if (results.poseLandmarks) {
+        const ear = results.poseLandmarks[7];        // LEFT_EAR
+        const shoulder = results.poseLandmarks[11];  // LEFT_SHOULDER
 
-          ctx.beginPath();
-          ctx.strokeStyle = "deepskyblue";
-          ctx.lineWidth = 4;
-          ctx.moveTo(ear.x * canvas.width, ear.y * canvas.height);
-          ctx.lineTo(shoulder.x * canvas.width, shoulder.y * canvas.height);
-          ctx.stroke();
+        // 선 그리기
+        ctx.beginPath();
+        ctx.strokeStyle = "deepskyblue";
+        ctx.lineWidth = 4;
+        ctx.moveTo(ear.x * canvas.width, ear.y * canvas.height);
+        ctx.lineTo(shoulder.x * canvas.width, shoulder.y * canvas.height);
+        ctx.stroke();
 
-          const dx = (ear.x - shoulder.x) * canvas.width;
-          const dy = (ear.y - shoulder.y) * canvas.height;
-          const angle = Math.atan2(dy, dx) * (180 / Math.PI);
-          const neckAngle = Math.abs(angle);
-          this.neckAngles.push(neckAngle);
+        // 각도 계산
+        const dx = (ear.x - shoulder.x) * canvas.width;
+        const dy = (ear.y - shoulder.y) * canvas.height;
+        const angle = Math.atan2(dy, dx) * (180 / Math.PI);
+        const neckAngle = Math.abs(angle);
+        this.neckAngles.push(neckAngle);
 
-          const imageCanvas = document.createElement('canvas');
-          imageCanvas.width = canvas.width;
-          imageCanvas.height = canvas.height;
-          imageCanvas.getContext('2d').drawImage(canvas, 0, 0);
-          this.capturedFrames.push({
-            angle: neckAngle,
-            dataUrl: imageCanvas.toDataURL('image/jpeg')
-          });
-        }
-      });
+        // ✅ 여기 추가: 왼쪽 상단에 각도 표시 + 색상 조건
+        ctx.fillStyle = neckAngle > 135 ? "red" : "green";
+        ctx.font = "35px Arial";
+        ctx.fillText(`📐 각도: ${neckAngle.toFixed(1)}°`, 10, 30);
+
+        // 프레임 저장
+        const imageCanvas = document.createElement('canvas');
+        imageCanvas.width = canvas.width;
+        imageCanvas.height = canvas.height;
+        imageCanvas.getContext('2d').drawImage(canvas, 0, 0);
+        this.capturedFrames.push({
+          angle: neckAngle,
+          dataUrl: imageCanvas.toDataURL('image/jpeg')
+        });
+      }
+    });
+
 
       camera = new window.Camera(video, {
         onFrame: async () => {
@@ -147,6 +156,17 @@ export default {
       if (camera && camera.stop) camera.stop();
       if (pose && pose.close) pose.close();
 
+      // ✅ 앞뒤 2초 제거
+      const frameRate = 5;
+      const framesToRemove = frameRate * 2;
+      if (this.capturedFrames.length > framesToRemove * 2) {
+        this.capturedFrames = this.capturedFrames.slice(framesToRemove, -framesToRemove);
+        this.neckAngles = this.neckAngles.slice(framesToRemove, -framesToRemove);
+      } else {
+        console.warn("📸 프레임 수 부족으로 앞뒤 제거 생략");
+      }
+
+      // ✅ 평균, 최대 목 각도 계산
       const avg = this.neckAngles.reduce((a, b) => a + b, 0) / this.neckAngles.length;
       const max = Math.max(...this.neckAngles);
       this.averageNeck = avg;
@@ -167,12 +187,15 @@ export default {
         })
       });
 
-      const worst = this.capturedFrames.reduce((max, frame) => frame.angle > max.angle ? frame : max, this.capturedFrames[0]);
+      const worst = this.capturedFrames.reduce((max, frame) =>
+        frame.angle > max.angle ? frame : max, this.capturedFrames[0]
+      );
       await this.uploadToServer(worst.dataUrl);
       this.worstFrameUrl = worst.dataUrl;
       this.isCapturing = false;
       this.measurementFinished = true;
     },
+
 
     async uploadToServer(dataUrl) {
       try {
