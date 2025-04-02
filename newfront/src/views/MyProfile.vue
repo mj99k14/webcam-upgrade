@@ -30,6 +30,7 @@
     </div>
   </div>
 </template>
+
 <script>
 import axios from "axios";
 import { ref, onMounted, computed } from "vue";
@@ -58,18 +59,15 @@ export default {
     const bestPhoto = ref(null);
     const worstPhoto = ref(null);
 
+    // ✅ 날짜 필터 + 최신순 정렬
     const filteredPhotos = computed(() => {
       let list = photos.value;
-
-      // 📅 날짜 필터 적용
       if (selectedDate.value) {
         list = list.filter(photo => {
           const dateOnly = new Date(photo.uploaded_at).toISOString().split("T")[0];
           return dateOnly === selectedDate.value;
         });
       }
-
-      // 🔽 최신순 정렬 (가장 최근 업로드된 사진이 위로)
       return list.sort((a, b) => new Date(b.uploaded_at) - new Date(a.uploaded_at));
     });
 
@@ -106,7 +104,6 @@ export default {
         const res = await axios.get(`http://210.101.236.158:5000/api/photos?user_id=${user.value.id}`);
         photos.value = res.data;
 
-        // ✅ 최신 날짜 기준으로 정렬하고, 그 날짜 자동 선택
         const sorted = [...photos.value].sort((a, b) => new Date(b.uploaded_at) - new Date(a.uploaded_at));
         const latestDate = sorted[0]?.uploaded_at?.split("T")[0];
         if (latestDate) {
@@ -118,7 +115,7 @@ export default {
     };
 
     const handlePhotoUploaded = () => {
-      fetchPhotos(); // ✅ 업로드 후 자동 갱신
+      fetchPhotos();
     };
 
     const deletePhoto = async (id) => {
@@ -126,13 +123,10 @@ export default {
         const res = await axios.delete(`http://210.101.236.158:5000/api/photos/${id}`);
         if (res.data.success) {
           alert("사진이 삭제되었습니다.");
-
-          // ✅ 현재 선택된 사진이 삭제된 사진이라면 선택 해제
           if (selectedPhoto.value && selectedPhoto.value.id === id) {
             selectedPhoto.value = null;
           }
-
-          fetchPhotos(); // ✅ 삭제 후 목록 갱신
+          fetchPhotos();
         }
       } catch (err) {
         console.error("🚨 사진 삭제 오류:", err);
@@ -188,7 +182,6 @@ export default {
   }
 };
 </script>
-
 
 <style scoped>
 .container {
@@ -251,7 +244,6 @@ export default {
   .container {
     flex-direction: column;
   }
-
   .container > * {
     max-width: 100%;
   }

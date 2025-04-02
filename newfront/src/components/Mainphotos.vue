@@ -1,17 +1,23 @@
 <template>
   <div class="main">
-    <!-- ✅ 항상 맨 위에 결과 사진 표시 -->
-    <div v-if="worstFrameUrl" class="result-photo">
-      <img :src="worstFrameUrl" alt="거북목 사진" />
+    <!-- 📸 결과 사진 출력 -->
+    <div class="result-photo-group" v-if="worstFrameUrl || bestFrameUrl">
+      <div v-if="bestFrameUrl" class="photo-block">
+        <p>✅ 가장 좋은 자세</p>
+        <img :src="bestFrameUrl" alt="좋은 자세" />
+      </div>
+      <div v-if="worstFrameUrl" class="photo-block">
+        <p>⚠️ 가장 나쁜 자세</p>
+        <img :src="worstFrameUrl" alt="거북목 자세" />
+      </div>
     </div>
 
-    <!-- 제목과 측정 버튼 -->
     <h2>자세 측정</h2>
     <button @click="toggleMeasurement">
       {{ isCapturing ? '📴 측정 종료' : '📸 측정 시작' }}
     </button>
 
-    <!-- 실시간 영상 + 캔버스 + 시간 -->
+    <!-- 🔴 실시간 측정 영상 -->
     <div v-show="showMeasurementArea && !measurementFinished" class="measurement-area">
       <div class="video-canvas">
         <video ref="video" autoplay muted playsinline></video>
@@ -20,11 +26,11 @@
       <p>⏱ 측정 시간: {{ formattedTime }}</p>
     </div>
 
-    <!-- 결과 정보 -->
+    <!-- 📊 측정 결과 -->
     <div v-if="measurementFinished" class="result-info">
       <p>✏️ 평균 목 각도: {{ averageNeck.toFixed(2) }}°</p>
       <p>📏 최대 목 각도: {{ maxNeck.toFixed(2) }}°</p>
-      <p>📸 거북목일 때 사진 저장 완료</p>
+      <p>📸 측정 결과 저장 완료</p>
       <button @click="restartMeasurement">다시 측정하기</button>
     </div>
   </div>
@@ -37,6 +43,7 @@ let pose = null;
 let camera = null;
 
 export default {
+  emits: ["handlePhotoUploaded"],
   data() {
     return {
       isCapturing: false,
@@ -46,17 +53,22 @@ export default {
       capturedFrames: [],
       averageNeck: 0,
       maxNeck: 0,
+      bestFrameUrl: '',
       worstFrameUrl: '',
       elapsedSeconds: 0,
-      timerInterval: null
+      timerInterval: null,
+      frameCounter: 0,
+      frameInterval: 5,
+      bestPhotoId: null,
+      worstPhotoId: null
     };
   },
   computed: {
     formattedTime() {
       const minutes = Math.floor(this.elapsedSeconds / 60);
       const seconds = this.elapsedSeconds % 60;
-      return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-    }
+      return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+    },
   },
   methods: {
     toggleMeasurement() {
@@ -69,6 +81,7 @@ export default {
       this.measurementFinished = false;
       this.showMeasurementArea = true;
       this.elapsedSeconds = 0;
+      this.frameCounter = 0;
 
       await nextTick();
 
@@ -84,65 +97,63 @@ export default {
       this.timerInterval = setInterval(() => this.elapsedSeconds++, 1000);
 
       pose = new window.Pose({
-        locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5/${file}`
+        locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5/${file}`,
       });
 
       pose.setOptions({
         modelComplexity: 1,
         smoothLandmarks: true,
         minDetectionConfidence: 0.5,
-        minTrackingConfidence: 0.5
+        minTrackingConfidence: 0.5,
       });
 
       pose.onResults((results) => {
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.drawImage(results.image, 0, 0, canvas.width, canvas.height);
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(results.image, 0, 0, canvas.width, canvas.height);
 
-      if (results.poseLandmarks) {
-        const ear = results.poseLandmarks[7];        // LEFT_EAR
-        const shoulder = results.poseLandmarks[11];  // LEFT_SHOULDER
+        if (results.poseLandmarks) {
+          const ear = results.poseLandmarks[7];
+          const shoulder = results.poseLandmarks[11];
 
-        // 선 그리기
-        ctx.beginPath();
-        ctx.strokeStyle = "deepskyblue";
-        ctx.lineWidth = 4;
-        ctx.moveTo(ear.x * canvas.width, ear.y * canvas.height);
-        ctx.lineTo(shoulder.x * canvas.width, shoulder.y * canvas.height);
-        ctx.stroke();
+          const dx = (ear.x - shoulder.x) * canvas.width;
+          const dy = (ear.y - shoulder.y) * canvas.height;
+          const angle = Math.atan2(dy, dx) * (180 / Math.PI);
+          const neckAngle = Math.abs(angle);
+          this.neckAngles.push(neckAngle);
 
-        // 각도 계산
-        const dx = (ear.x - shoulder.x) * canvas.width;
-        const dy = (ear.y - shoulder.y) * canvas.height;
-        const angle = Math.atan2(dy, dx) * (180 / Math.PI);
-        const neckAngle = Math.abs(angle);
-        this.neckAngles.push(neckAngle);
+          ctx.beginPath();
+          ctx.strokeStyle = "deepskyblue";
+          ctx.lineWidth = 4;
+          ctx.moveTo(ear.x * canvas.width, ear.y * canvas.height);
+          ctx.lineTo(shoulder.x * canvas.width, shoulder.y * canvas.height);
+          ctx.stroke();
 
-        // ✅ 여기 추가: 왼쪽 상단에 각도 표시 + 색상 조건
-        ctx.fillStyle = neckAngle > 135 ? "red" : "green";
-        ctx.font = "35px Arial";
-        ctx.fillText(`📐 각도: ${neckAngle.toFixed(1)}°`, 10, 30);
+          ctx.fillStyle = neckAngle > 135 ? "red" : "green";
+          ctx.font = "35px Arial";
+          ctx.fillText(`📐 ${neckAngle.toFixed(1)}°`, 10, 35);
 
-        // 프레임 저장
-        const imageCanvas = document.createElement('canvas');
-        imageCanvas.width = canvas.width;
-        imageCanvas.height = canvas.height;
-        imageCanvas.getContext('2d').drawImage(canvas, 0, 0);
-        this.capturedFrames.push({
-          angle: neckAngle,
-          dataUrl: imageCanvas.toDataURL('image/jpeg')
-        });
-      }
-    });
-
+          this.frameCounter++;
+          if (this.frameCounter % this.frameInterval === 0) {
+            const imageCanvas = document.createElement("canvas");
+            imageCanvas.width = canvas.width;
+            imageCanvas.height = canvas.height;
+            imageCanvas.getContext("2d").drawImage(canvas, 0, 0);
+            this.capturedFrames.push({
+              angle: neckAngle,
+              dataUrl: imageCanvas.toDataURL("image/jpeg"),
+            });
+          }
+        }
+      });
 
       camera = new window.Camera(video, {
         onFrame: async () => {
           await pose.send({ image: video });
         },
         width: 640,
-        height: 480
+        height: 480,
       });
 
       camera.start();
@@ -153,28 +164,28 @@ export default {
       clearInterval(this.timerInterval);
       this.timerInterval = null;
 
-      if (camera && camera.stop) camera.stop();
-      if (pose && pose.close) pose.close();
+      if (camera?.stop) camera.stop();
+      if (pose?.close) pose.close();
 
-      // ✅ 앞뒤 2초 제거
-      const frameRate = 5;
-      const framesToRemove = frameRate * 2;
-      if (this.capturedFrames.length > framesToRemove * 2) {
-        this.capturedFrames = this.capturedFrames.slice(framesToRemove, -framesToRemove);
-        this.neckAngles = this.neckAngles.slice(framesToRemove, -framesToRemove);
-      } else {
-        console.warn("📸 프레임 수 부족으로 앞뒤 제거 생략");
-      }
-
-      // ✅ 평균, 최대 목 각도 계산
       const avg = this.neckAngles.reduce((a, b) => a + b, 0) / this.neckAngles.length;
       const max = Math.max(...this.neckAngles);
       this.averageNeck = avg;
       this.maxNeck = max;
 
-      const user = JSON.parse(localStorage.getItem('user'));
+      const user = JSON.parse(localStorage.getItem("user"));
       const userId = user?.user_id;
       if (!userId) return alert("사용자 정보 없음");
+
+      const worst = this.capturedFrames.reduce((max, f) => (f.angle > max.angle ? f : max), this.capturedFrames[0]);
+      const best = this.capturedFrames.reduce((min, f) => (f.angle < min.angle ? f : min), this.capturedFrames[0]);
+
+      const worstId = await this.uploadToServer(worst.dataUrl, "worst");
+      const bestId = await this.uploadToServer(best.dataUrl, "best");
+
+      this.worstFrameUrl = worst.dataUrl;
+      this.bestFrameUrl = best.dataUrl;
+      this.bestPhotoId = bestId;
+      this.worstPhotoId = worstId;
 
       await fetch("http://210.101.236.158:5000/api/posture/save", {
         method: "POST",
@@ -183,70 +194,66 @@ export default {
           user_id: userId,
           average_neck_angle: avg,
           max_neck_angle: max,
-          duration: this.elapsedSeconds
+          average_shoulder_angle: 0,
+          max_shoulder_angle: 0,
+          duration: this.elapsedSeconds,
+          best_photo_id: bestId,
+          worst_photo_id: worstId,
+          feedback: max > 135 ? "거북목 의심" : "정상"
         })
       });
 
-      const worst = this.capturedFrames.reduce((max, frame) =>
-        frame.angle > max.angle ? frame : max, this.capturedFrames[0]
-      );
-      await this.uploadToServer(worst.dataUrl);
-      this.worstFrameUrl = worst.dataUrl;
       this.isCapturing = false;
       this.measurementFinished = true;
     },
 
-
-    async uploadToServer(dataUrl) {
+    async uploadToServer(dataUrl, type = "worst") {
       try {
-        // ✅ Base64 → Blob 변환
-        const byteString = atob(dataUrl.split(',')[1]);
-        const mime = dataUrl.split(',')[0].split(':')[1].split(';')[0];
+        const byteString = atob(dataUrl.split(",")[1]);
+        const mime = dataUrl.split(",")[0].split(":")[1].split(";")[0];
         const ab = new ArrayBuffer(byteString.length);
         const ia = new Uint8Array(ab);
-        for (let i = 0; i < byteString.length; i++) {
-          ia[i] = byteString.charCodeAt(i);
-        }
+        for (let i = 0; i < byteString.length; i++) ia[i] = byteString.charCodeAt(i);
         const blob = new Blob([ab], { type: mime });
 
-        // ✅ FormData 구성
         const formData = new FormData();
-        const user = JSON.parse(localStorage.getItem('user'));
-        formData.append('user_id', user?.user_id);
-        formData.append('photo', blob, 'turtle_neck.jpg');
-        formData.append('neck_angle', this.averageNeck.toFixed(2));
-        formData.append('shoulder_angle', 0); // shoulder_angle 없으면 0으로 대체
+        const user = JSON.parse(localStorage.getItem("user"));
+        formData.append("user_id", user?.user_id);
+        formData.append("photo", blob, `${type}_photo.jpg`);
+        formData.append("neck_angle", this.averageNeck.toFixed(2));
+        formData.append("shoulder_angle", 0);
+        formData.append("type", type);
 
-        // ✅ 업로드 요청
-        const res = await fetch('http://210.101.236.158:5000/api/photos/upload', {
-          method: 'POST',
-          body: formData, // 🔥 Content-Type 생략해야 boundary 자동 생성됨
+        const res = await fetch("http://210.101.236.158:5000/api/photos/upload", {
+          method: "POST",
+          body: formData,
         });
 
         const data = await res.json();
-        if (!data.success) {
-          alert('업로드 실패: ' + data.message);
+        if (data.success) {
+          this.$emit("handlePhotoUploaded");
+          return data.photo_id || null;
         } else {
-          console.log("✅ 업로드 성공:", data.photo_url);
-          this.$emit("handlePhotoUploaded");//  사진 업로드 후 컴포넌트에 알림 보내기
+          alert("업로드 실패: " + data.message);
+          return null;
         }
       } catch (err) {
-        console.error("❌ 업로드 실패", err);
+        console.error(`❌ [${type}] 업로드 실패`, err);
         alert("사진 업로드 중 오류 발생");
+        return null;
       }
     },
-
 
     restartMeasurement() {
       this.measurementFinished = false;
       this.showMeasurementArea = false;
-    }
+    },
   },
 
   mounted() {
     const loadScript = (src) => {
-      return new Promise(resolve => {
-        const script = document.createElement('script');
+      return new Promise((resolve) => {
+        const script = document.createElement("script");
         script.src = src;
         script.onload = resolve;
         document.head.appendChild(script);
@@ -256,9 +263,9 @@ export default {
     Promise.all([
       loadScript("https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5/pose.js"),
       loadScript("https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"),
-      loadScript("https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js")
+      loadScript("https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"),
     ]);
-  }
+  },
 };
 </script>
 
@@ -276,7 +283,8 @@ export default {
   position: relative;
   display: inline-block;
 }
-video, canvas {
+video,
+canvas {
   width: 640px;
   height: 480px;
   border: 2px solid #ccc;
@@ -288,5 +296,24 @@ canvas {
 }
 .result-info {
   margin-top: 20px;
+}
+.result-photo-group {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+.photo-block {
+  text-align: center;
+}
+.photo-block img {
+  width: 300px;
+  border: 3px solid #ccc;
+  border-radius: 12px;
+}
+.photo-block p {
+  margin-bottom: 8px;
+  font-weight: bold;
+  font-size: 16px;
 }
 </style>

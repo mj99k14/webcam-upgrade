@@ -1,163 +1,190 @@
 <template>
-    <div class="summary-box" v-if="photos.length > 0">
-      <h3>📊 전체 분석 리포트</h3>
-      <div class="summary-graph-container">
-        <!-- 도넛 그래프 -->
-        <div class="donut-chart-box">
-          <Doughnut :data="donutData" :options="donutOptions" />
-        </div>
-  
-        <!-- 개선 추세 그래프 -->
-        <div class="line-chart-box">
-          <Line :data="lineData" :options="lineOptions" />
-        </div>
+  <div class="summary-box" v-if="dailyStats.length > 0">
+    <h3>📊 자세 분석 요약</h3>
+
+    <div class="charts">
+      <!-- 도넛 차트 -->
+      <div class="chart-box">
+        <Doughnut :data="donutData" :options="donutOptions" />
+        <p class="risk-level-text">📌 개선 필요도: <span :class="riskLevelClass">{{ riskLevel }}</span></p>
       </div>
-  
-      <!-- 텍스트 요약 -->
-      <div class="summary-text">
-        <p>총 촬영 횟수: {{ total }}회</p>
-        <p>거북목 의심 횟수: {{ neckWarnings }} ({{ neckRate }}%)</p>
-        <p>어깨 기울기 이상 횟수: {{ shoulderWarnings }} ({{ shoulderRate }}%)</p>
-        <p>최근 촬영: {{ lastTaken }}</p>
-        <p>개선 필요도: {{ riskLevel }}</p>
+
+      <!-- 날짜별 평균 목 각도 변화 -->
+      <div class="chart-box">
+        <Line :data="trendData" :options="trendOptions" />
+        <p class="caption">📈 날짜별 평균 목 각도</p>
       </div>
     </div>
-  </template>
-  
-  <script>
-  import { Doughnut, Line } from 'vue-chartjs'
-  import { Chart as ChartJS, Title, Tooltip, Legend, ArcElement, CategoryScale, LinearScale, PointElement, LineElement } from 'chart.js'
-  
-  ChartJS.register(Title, Tooltip, Legend, ArcElement, CategoryScale, LinearScale, PointElement, LineElement)
-  
-  export default {
-    name: 'SummaryStats',
-    components: { Doughnut, Line },
-    props: ['photos'],
-    computed: {
-      total() {
-        return this.photos.length;
-      },
-      neckWarnings() {
-        return this.photos.filter(p => p.neck_angle > 45).length;
-      },
-      shoulderWarnings() {
-        return this.photos.filter(p => Math.abs(p.shoulder_angle) > 10).length;
-      },
-      neckRate() {
-        return ((this.neckWarnings / this.total) * 100).toFixed(1);
-      },
-      shoulderRate() {
-        return ((this.shoulderWarnings / this.total) * 100).toFixed(1);
-      },
-      lastTaken() {
-        if (this.total === 0) return '없음';
-        const last = new Date(this.photos[this.photos.length - 1].uploaded_at);
-        const month = last.getMonth() + 1;
-        const day = last.getDate();
-        const hour = last.getHours().toString().padStart(2, '0');
-        const minute = last.getMinutes().toString().padStart(2, '0');
-        return `${month}월 ${day}일 ${hour}:${minute}`;
-      },
-      riskLevel() {
-        const nw = this.neckWarnings / this.total;
-        const sw = this.shoulderWarnings / this.total;
-        if (nw >= 0.5 || sw >= 0.5) return '🔴 높음';
-        else if (nw >= 0.2 || sw >= 0.2) return '🟡 중간';
-        else return '🟢 양호';
-      },
-      donutData() {
-        const normal = this.total - this.neckWarnings;
-        return {
-          labels: ['거북목 의심', '정상 자세'],
-          datasets: [
-            {
-              data: [this.neckWarnings, normal],
-              backgroundColor: ['#ff6384', '#36a2eb'],
-            },
-          ],
-        };
-      },
-      donutOptions() {
-        return {
-          responsive: true,
-          maintainAspectRatio: false,
-          cutout: '60%',
-        };
-      },
-      lineData() {
-        const grouped = {};
-  
-        this.photos.forEach(photo => {
-          const date = new Date(photo.uploaded_at).toISOString().split('T')[0];
-          const isBad = photo.neck_angle > 45 || Math.abs(photo.shoulder_angle) > 10;
-          if (!grouped[date]) grouped[date] = 0;
-          if (isBad) grouped[date]++;
-        });
-  
-        const sortedDates = Object.keys(grouped).sort();
-        return {
-          labels: sortedDates,
-          datasets: [
-            {
-              label: '비정상 자세 횟수',
-              data: sortedDates.map(d => grouped[d]),
-              borderColor: '#ff6384',
-              backgroundColor: '#ffb6c1',
-              tension: 0.3,
-              fill: true
-            }
-          ]
-        };
-      },
-      lineOptions() {
-        return {
-          responsive: true,
-          maintainAspectRatio: false,
-          scales: {
-            y: {
-              beginAtZero: true,
-              ticks: {
-                stepSize: 1
-              }
-            }
+
+    <!-- 요약 -->
+    <div class="summary-text">
+      <p>총 촬영일 수: <strong>{{ dailyStats.length }}</strong>일</p>
+      <p>평균 목 각도: <strong>{{ overallAverage.toFixed(1) }}</strong>°</p>
+      <p>거북목 비율(135° 이상): <strong>{{ highAngleRatio }}%</strong></p>
+      <p>📅 최근 촬영일: {{ lastTaken }}</p>
+    </div>
+  </div>
+</template>
+
+<script>
+import { Doughnut, Line } from 'vue-chartjs';
+import {
+  Chart as ChartJS, Title, Tooltip, Legend, ArcElement,
+  CategoryScale, LinearScale, PointElement, LineElement
+} from 'chart.js';
+
+ChartJS.register(Title, Tooltip, Legend, ArcElement, CategoryScale, LinearScale, PointElement, LineElement);
+
+export default {
+  name: 'SummaryStats',
+  components: { Doughnut, Line },
+  props: ['photos'],
+  computed: {
+    dailyStats() {
+      const grouped = {};
+      this.photos.forEach(p => {
+        const date = new Date(p.measured_at || p.uploaded_at).toISOString().split('T')[0];
+        if (!grouped[date]) grouped[date] = [];
+        grouped[date].push(p.average_neck_angle || p.neck_angle);
+      });
+      return Object.entries(grouped).map(([date, angles]) => {
+        const avg = angles.reduce((sum, a) => sum + a, 0) / angles.length;
+        return { date, avg: avg.toFixed(1), count: angles.length };
+      });
+    },
+    overallAverage() {
+      if (this.photos.length === 0) return 0;
+      const total = this.photos.reduce((sum, p) => sum + (p.average_neck_angle || p.neck_angle), 0);
+      return total / this.photos.length;
+    },
+    highAngleRatio() {
+      const high = this.photos.filter(p => (p.average_neck_angle || p.neck_angle) >= 135).length;
+      return ((high / this.photos.length) * 100).toFixed(1);
+    },
+    lastTaken() {
+      if (this.photos.length === 0) return '없음';
+      const last = new Date(this.photos[this.photos.length - 1].measured_at || this.photos[this.photos.length - 1].uploaded_at);
+      return `${last.getMonth() + 1}월 ${last.getDate()}일 ${last.getHours()}:${last.getMinutes().toString().padStart(2, '0')}`;
+    },
+    riskLevel() {
+      const rate = this.highAngleRatio;
+      if (rate >= 50) return '🔴 높음';
+      if (rate >= 20) return '🟡 중간';
+      return '🟢 양호';
+    },
+    riskLevelClass() {
+      const r = this.riskLevel;
+      if (r.includes('🔴')) return 'high';
+      if (r.includes('🟡')) return 'medium';
+      return 'low';
+    },
+    donutData() {
+      const total = this.photos.length;
+      const bad = this.photos.filter(p => (p.average_neck_angle || p.neck_angle) >= 135).length;
+      const good = total - bad;
+      return {
+        labels: ['거북목 의심', '정상 자세'],
+        datasets: [{
+          data: [bad, good],
+          backgroundColor: ['#ff6b6b', '#1e90ff'],
+        }]
+      };
+    },
+    donutOptions() {
+      return {
+        cutout: '65%',
+        responsive: true,
+        plugins: {
+          legend: {
+            position: 'bottom'
           }
-        };
-      }
+        }
+      };
+    },
+    trendData() {
+      const labels = this.dailyStats.map(d => d.date);
+      const values = this.dailyStats.map(d => d.avg);
+      return {
+        labels,
+        datasets: [{
+          label: '평균 목 각도',
+          data: values,
+          borderColor: '#3b82f6',
+          backgroundColor: '#bfdbfe',
+          fill: true,
+          tension: 0.3,
+          pointRadius: 5,
+        }]
+      };
+    },
+    trendOptions() {
+      return {
+        responsive: true,
+        scales: {
+          y: {
+            beginAtZero: false,
+            suggestedMin: 90,
+            suggestedMax: 160
+          }
+        }
+      };
     }
   }
-  </script>
-  
-  <style scoped>
-  .summary-box {
-    background-color: #f4fff4;
-    border: 1px solid #bde5bd;
-    padding: 20px;
-    border-radius: 12px;
-    margin-top: 20px;
-  }
-  
-  .summary-graph-container {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 40px;
-    margin-bottom: 20px;
-  }
-  
-  .donut-chart-box,
-  .line-chart-box {
-    flex: 1;
-    min-width: 300px;
-    max-width: 500px;
-    height: 300px;
-  }
-  
-  .summary-text {
-    font-size: 16px;
-    color: #333;
-    line-height: 1.6;
-    text-align: center;
-  }
-  </style>
-  
+};
+</script>
+
+<style scoped>
+.summary-box {
+  background: #f0fff0;
+  border: 1px solid #b2e2b2;
+  padding: 20px;
+  border-radius: 12px;
+  margin-top: 20px;
+}
+
+.charts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 30px;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.chart-box {
+  flex: 1;
+  min-width: 300px;
+  max-width: 450px;
+  height: 300px;
+  position: relative;
+}
+
+.summary-text {
+  text-align: center;
+  font-size: 15px;
+  color: #333;
+  line-height: 1.7;
+}
+
+.caption {
+  text-align: center;
+  font-size: 13px;
+  margin-top: 10px;
+  color: #666;
+}
+
+.risk-level-text {
+  text-align: center;
+  margin-top: 10px;
+  font-size: 16px;
+}
+
+.risk-level-text .high {
+  color: red;
+}
+.risk-level-text .medium {
+  color: orange;
+}
+.risk-level-text .low {
+  color: green;
+}
+</style>

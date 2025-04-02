@@ -17,12 +17,36 @@
       />
     </div>
 
-    <h3>업로드된 사진</h3>
-    <p>총 {{ filteredPhotos.length }}장</p>
+    <!-- Best Posture Photo -->
+    <div v-if="bestPhoto">
+      <h3>🟢 가장 좋은 자세</h3>
+      <PhotoItem
+        :photo="bestPhoto"
+        :mainPhotoId="mainPhotoId"
+        :formatTime="formatTime"
+        @showPhoto="$emit('showPhoto', $event)"
+        @deletePhoto="$emit('deletePhoto', $event)"
+      />
+    </div>
 
+    <!-- Worst Posture Photo -->
+    <div v-if="worstPhoto">
+      <h3>🟠 가장 나쁜 자세</h3>
+      <PhotoItem
+        :photo="worstPhoto"
+        :mainPhotoId="mainPhotoId"
+        :formatTime="formatTime"
+        @showPhoto="$emit('showPhoto', $event)"
+        @deletePhoto="$emit('deletePhoto', $event)"
+      />
+    </div>
+
+    <!-- Normal Photo List -->
+    <h3>📸 일반 사진</h3>
+    <p>총 {{ normalPhotos.length }}장</p>
     <ul>
       <PhotoItem
-        v-for="photo in filteredPhotos"
+        v-for="photo in normalPhotos"
         :key="photo.id"
         :photo="photo"
         :mainPhotoId="mainPhotoId"
@@ -46,7 +70,18 @@ export default {
     selectedDate: String,
     formatTime: Function
   },
-  emits: ['showPhoto', 'deletePhoto', 'update:selectedDate']
+  emits: ['showPhoto', 'deletePhoto', 'update:selectedDate'],
+  computed: {
+    bestPhoto() {
+      return this.filteredPhotos.find(photo => photo.type === 'best');
+    },
+    worstPhoto() {
+      return this.filteredPhotos.find(photo => photo.type === 'worst');
+    },
+    normalPhotos() {
+      return this.filteredPhotos.filter(photo => photo.type !== 'best' && photo.type !== 'worst');
+    }
+  }
 };
 </script>
 
