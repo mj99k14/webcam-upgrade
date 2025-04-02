@@ -114,8 +114,8 @@ export default {
         ctx.drawImage(results.image, 0, 0, canvas.width, canvas.height);
 
         if (results.poseLandmarks) {
-          const ear = results.poseLandmarks[7];
-          const shoulder = results.poseLandmarks[11];
+          const ear = results.poseLandmarks[7]; // 왼쪽 귀
+          const shoulder = results.poseLandmarks[11]; // 왼쪽 어깨
 
           const dx = (ear.x - shoulder.x) * canvas.width;
           const dy = (ear.y - shoulder.y) * canvas.height;
@@ -167,6 +167,11 @@ export default {
       if (camera?.stop) camera.stop();
       if (pose?.close) pose.close();
 
+      if (this.neckAngles.length === 0 || this.capturedFrames.length === 0) {
+        alert("측정된 프레임이 없습니다.");
+        return;
+      }
+
       const avg = this.neckAngles.reduce((a, b) => a + b, 0) / this.neckAngles.length;
       const max = Math.max(...this.neckAngles);
       this.averageNeck = avg;
@@ -179,8 +184,10 @@ export default {
       const worst = this.capturedFrames.reduce((max, f) => (f.angle > max.angle ? f : max), this.capturedFrames[0]);
       const best = this.capturedFrames.reduce((min, f) => (f.angle < min.angle ? f : min), this.capturedFrames[0]);
 
-      const worstId = await this.uploadToServer(worst.dataUrl, "worst");
-      const bestId = await this.uploadToServer(best.dataUrl, "best");
+   
+      const worstId = await this.uploadToServer(worst.dataUrl, "worst", worst.angle);
+      const bestId = await this.uploadToServer(best.dataUrl, "best", best.angle);
+
 
       this.worstFrameUrl = worst.dataUrl;
       this.bestFrameUrl = best.dataUrl;
@@ -194,8 +201,6 @@ export default {
           user_id: userId,
           average_neck_angle: avg,
           max_neck_angle: max,
-          average_shoulder_angle: 0,
-          max_shoulder_angle: 0,
           duration: this.elapsedSeconds,
           best_photo_id: bestId,
           worst_photo_id: worstId,
@@ -207,7 +212,8 @@ export default {
       this.measurementFinished = true;
     },
 
-    async uploadToServer(dataUrl, type = "worst") {
+    
+    async uploadToServer(dataUrl, type = "worst", neckAngle = 0) {
       try {
         const byteString = atob(dataUrl.split(",")[1]);
         const mime = dataUrl.split(",")[0].split(":")[1].split(";")[0];
@@ -220,8 +226,7 @@ export default {
         const user = JSON.parse(localStorage.getItem("user"));
         formData.append("user_id", user?.user_id);
         formData.append("photo", blob, `${type}_photo.jpg`);
-        formData.append("neck_angle", this.averageNeck.toFixed(2));
-        formData.append("shoulder_angle", 0);
+        formData.append("neck_angle", neckAngle.toFixed(2)); // ✅ 실제 각도 저장
         formData.append("type", type);
 
         const res = await fetch("http://210.101.236.158:5000/api/photos/upload", {
@@ -243,6 +248,8 @@ export default {
         return null;
       }
     },
+
+
 
     restartMeasurement() {
       this.measurementFinished = false;
