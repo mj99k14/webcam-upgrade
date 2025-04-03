@@ -13,14 +13,14 @@
     </div>
 
     <PhotoModal v-if="modalUrl" :photoUrl="modalUrl" @close="modalUrl = null" />
-
+    <div class="title-group">
     <h2>거북목 측정</h2>
-
     <div class="button-group" v-if="isCapturing && !measurementFinished">
       <button class="stop-btn" @click="stopCamera">📴 측정 중지</button>
       <button class="complete-btn" @click="finishMeasurement">✅ 측정 완료</button>
     </div>
     <button v-else @click="toggleMeasurement" class="start-btn">📸 측정 시작</button>
+  </div>
 
     <div v-show="showMeasurementArea && !measurementFinished" class="measurement-area">
       <div class="video-canvas">
@@ -274,137 +274,89 @@ export default {
 </script>
 
 <style scoped>
-.main {
-  padding: 20px;
-  text-align: center;
-}
 
-.result-photo-group {
-  display: flex;
-  justify-content: center;
-  gap: 20px;
-  margin-bottom: 20px;
-}
-
-.photo-block {
-  text-align: center;
-}
-.photo-block img {
-  width: 300px;
-  border: 3px solid #ccc;
-  border-radius: 12px;
-}
-
-/* ✅ 비디오 및 캔버스 영역 */
 .video-canvas {
   position: relative;
-  display: inline-block;
-}
-video,
-canvas {
   width: 640px;
   height: 480px;
-  border: 2px solid #ccc;
+  margin: 0 auto;
 }
+
+video,
 canvas {
   position: absolute;
   top: 0;
   left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 12px;
+  object-fit: cover;
+  z-index: 1;
 }
 
-/* ✅ 측정 결과 영역 */
+canvas {
+  z-index: 2; /* canvas가 video 위에 올라오도록 */
+  pointer-events: none; /* 클릭 막기 */
+}
+
 .result-info {
-  margin-top: 20px;
-  background-color: #f8f8f8;
-  padding: 20px;
-  border-radius: 12px;
-  width: 300px;
+  margin-top: 30px;
+  background-color: #ffffff;
+  padding: 30px 40px;
+  border-radius: 15px;
+  width: 400px;
   margin-left: auto;
   margin-right: auto;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+  font-size: 22px;
+  text-align: left;
 }
+
 .stat-item {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 10px;
-  font-size: 16px;
+  align-items: center;
+  margin-bottom: 15px;
+  font-size: 22px;
 }
+
 .label {
-  font-weight: bold;
+  font-weight: 600;
+  color: #333;
 }
+
 .value {
   color: #007BFF;
+  font-weight: bold;
+  font-size: 18px;
 }
+
 .message {
   text-align: center;
-  color: #333;
-  margin: 15px 0;
+  color: #28a745;
+  font-size: 17px;
+  font-weight: 500;
+  margin: 20px 0;
 }
 
-/* ✅ 버튼 공통 */
-.button-group {
-  display: flex;
-  justify-content: center;
-  gap: 10px;
-  margin-bottom: 15px;
-}
-
-.button-group button {
-  flex: 1;
-  max-width: 220px;
-  padding: 10px 16px;
-  font-weight: bold;
-  border-radius: 8px;
-  border: none;
-  cursor: pointer;
-  font-size: 15px;
-}
-
-/* 측정 중지 버튼 */
-.stop-btn {
-  background-color: #f44336;
-  color: white;
-}
-.stop-btn:hover {
-  background-color: #c62828;
-}
-
-/* 측정 완료 버튼 */
-.complete-btn {
-  background-color: #4caf50;
-  color: white;
-}
-.complete-btn:hover {
-  background-color: #388e3c;
-}
-
-/* 재측정 버튼 (하단에만 사용) */
 .restart-btn {
-  padding: 10px 16px;
+  padding: 14px 24px;
   background-color: #4caf50;
   color: white;
   border: none;
-  border-radius: 8px;
+  border-radius: 10px;
   cursor: pointer;
   font-weight: bold;
   width: 100%;
+  font-size: 22x;
 }
 .restart-btn:hover {
   background-color: #388e3c;
 }
-
-/* 측정 시작 버튼 */
-.start-btn {
-  background-color: #1976d2;
-  color: white;
-  padding: 10px 16px;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: bold;
+.title-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 20px;
 }
-.start-btn:hover {
-  background-color: #1565c0;
-}
-
 </style>
