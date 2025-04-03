@@ -6,8 +6,6 @@
     </div>
 
     <p>{{ cameraStatus }}</p>
-
-    <button @click="startMeasurement" :disabled="isCapturing">📸 7초 측정 시작</button>
   </div>
 </template>
 
@@ -100,12 +98,6 @@ export default {
         const dataUrl = frameCanvas.toDataURL("image/jpeg");
         this.capturedFrames.push(dataUrl);
       }, 500);
-
-      setTimeout(() => {
-        clearInterval(interval);
-        this.isCapturing = false;
-        this.$emit('measurementFinished', this.capturedFrames);
-      }, 7000);
     }
   }
 };
