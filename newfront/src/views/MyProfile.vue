@@ -11,7 +11,9 @@
       :worstPhoto="worstPhoto"
       @startCamera="startCamera"
       @handlePhotoUploaded="handlePhotoUploaded"
+      @stopCamera="stopCamera"
     />
+
 
     <div class="photo-list-section">
       <PhotoList
@@ -22,12 +24,15 @@
         :formatTime="formatTime"
         @showPhoto="showPhoto"
         @deletePhoto="deletePhoto"
+        @photo-click="showPhoto"
       />
     </div>
 
     <div class="full-width">
       <SummaryStats :photos="photos" />
     </div>
+
+    <PhotoModal v-if="modalPhotoUrl" :photoUrl="modalPhotoUrl" @close="modalPhotoUrl = null" />
   </div>
 </template>
 
@@ -40,6 +45,7 @@ import PhotoList from '../components/PhotoList.vue';
 import MainPhotos from '../components/Mainphotos.vue';
 import SummaryStats from '../components/SummaryStats.vue';
 import UserSummary from '../components/UserSummary.vue';
+import PhotoModal from '../components/PhotoModal.vue'; 
 
 export default {
   components: {
@@ -47,35 +53,30 @@ export default {
     PhotoList,
     MainPhotos,
     SummaryStats,
-    UserSummary
+    UserSummary,
+    PhotoModal, 
   },
   setup() {
     const router = useRouter();
     const user = ref({});
     const photos = ref([]);
     const selectedPhoto = ref(null);
-    const cameraActive = ref(false);
     const selectedDate = ref("");
+    const modalPhotoUrl = ref(null);
+    const bestPhoto = ref(null);
+    const worstPhoto = ref(null);
 
-// ✅ 그리고 나서 watch 설정
     watch(selectedDate, (newDate) => {
       if (!newDate) return;
-
       const photosForDate = photos.value.filter(photo => {
         const dateOnly = new Date(photo.uploaded_at).toISOString().split("T")[0];
         return dateOnly === newDate;
       });
-
       const best = photosForDate.find(p => p.type === 'best');
       const worst = photosForDate.find(p => p.type === 'worst');
-
       selectedPhoto.value = best || worst || photosForDate[0] || null;
     });
 
-    const bestPhoto = ref(null);
-    const worstPhoto = ref(null);
-
-    // ✅ 날짜 필터 + 최신순 정렬
     const filteredPhotos = computed(() => {
       let list = photos.value;
       if (selectedDate.value) {
@@ -120,13 +121,10 @@ export default {
         const res = await axios.get(`http://210.101.236.158:5000/api/photos?user_id=${user.value.id}`);
         photos.value = res.data;
 
-        // 최신 날짜 기준 설정
         const sorted = [...photos.value].sort((a, b) => new Date(b.uploaded_at) - new Date(a.uploaded_at));
         const latestDate = sorted[0]?.uploaded_at?.split("T")[0];
         if (latestDate) {
           selectedDate.value = latestDate;
-
-          // ✅ 최신 날짜 중 첫 번째 사진을 자동 선택
           const latestPhotos = sorted.filter(p => p.uploaded_at.split('T')[0] === latestDate);
           selectedPhoto.value = latestPhotos[0] || null;
         }
@@ -135,10 +133,14 @@ export default {
       }
     };
 
-
     const handlePhotoUploaded = () => {
       fetchPhotos();
     };
+
+    const stopCamera = () => {
+    cameraActive.value = false;
+  };
+
 
     const deletePhoto = async (id) => {
       try {
@@ -157,6 +159,9 @@ export default {
 
     const showPhoto = (photo) => {
       selectedPhoto.value = photo;
+      if (photo?.photo_url) {
+        modalPhotoUrl.value = `http://210.101.236.158:5000${photo.photo_url}`;
+      }
     };
 
     const deleteAccount = async () => {
@@ -178,10 +183,6 @@ export default {
       router.push("/login");
     };
 
-    const startCamera = () => {
-      cameraActive.value = true;
-    };
-
     onMounted(fetchUser);
 
     return {
@@ -194,12 +195,11 @@ export default {
       showPhoto,
       deleteAccount,
       logout,
-      startCamera,
-      cameraActive,
       handlePhotoUploaded,
       formatTime,
       selectedDate,
       filteredPhotos,
+      PhotoModal, 
     };
   }
 };

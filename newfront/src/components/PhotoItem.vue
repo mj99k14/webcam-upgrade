@@ -1,6 +1,6 @@
 <template>
-  <div class="photo-item" @click="$emit('showPhoto', photo)">
-    <img :src="`http://210.101.236.158:5000${photo.photo_url}`" alt="사진" />
+  <div class="photo-item" @click="$emit('photo-click', photo)">
+    <img :src="photoUrl" alt="사진" />
     <div class="photo-info">
       <strong>{{ formattedDateTime }}</strong>
       <p class="neck-angle">거북목 각도: {{ formattedNeckAngle }}°</p>
@@ -12,10 +12,13 @@
 <script>
 export default {
   props: {
-    photo: Object,
-    formatTime: Function
+    photo: { type: Object, required: true },
+    formatTime: { type: Function, required: true }
   },
   computed: {
+    photoUrl() {
+      return `http://210.101.236.158:5000${this.photo.photo_url}`;
+    },
     formattedDateTime() {
       const date = new Date(this.photo.uploaded_at);
       return `${date.getMonth() + 1}월 ${date.getDate()}일 ${this.formatTime(date)}`;
@@ -38,7 +41,12 @@ export default {
   padding: 10px;
   cursor: pointer;
   position: relative;
+  transition: background-color 0.2s;
 }
+.photo-item:hover {
+  background-color: #e6f0ff;
+}
+
 .photo-item img {
   width: 60px;
   height: 60px;
@@ -46,14 +54,17 @@ export default {
   border-radius: 8px;
   margin-right: 10px;
 }
+
 .photo-info {
   flex-grow: 1;
 }
+
 .neck-angle {
   font-size: 13px;
   color: #888;
   margin-top: 2px;
 }
+
 .delete-btn {
   position: absolute;
   top: 6px;
@@ -64,6 +75,7 @@ export default {
   font-size: 13px;
   cursor: pointer;
 }
+
 .delete-btn:hover {
   color: red;
 }
