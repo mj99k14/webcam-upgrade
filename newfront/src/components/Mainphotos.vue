@@ -1,33 +1,35 @@
 <template>
   <div class="main">
-    <!-- 포스터 결과 사진 -->
-    <div class="result-photo-group" v-if="worstFrameUrl || bestFrameUrl">
+    <!-- 결과 사진 -->
+    <div class="result-photo-group" v-if="measurementFinished && (bestFrameUrl || worstFrameUrl)">
       <div v-if="bestFrameUrl" class="photo-block" @click="openModal(bestFrameUrl)">
         <p>✅ 가장 좋은 자세</p>
         <img :src="bestFrameUrl" alt="좋은 자세" />
       </div>
       <div v-if="worstFrameUrl" class="photo-block" @click="openModal(worstFrameUrl)">
         <p>⚠️ 가장 나쁜 자세</p>
-        <img :src="worstFrameUrl" alt="거북목의심  자세" />
+        <img :src="worstFrameUrl" alt="나쁜 자세" />
       </div>
     </div>
 
     <PhotoModal v-if="modalUrl" :photoUrl="modalUrl" @close="modalUrl = null" />
+
     <div class="title-group">
-    <h2>거북목 측정</h2>
-    <div class="button-group" v-if="isCapturing && !measurementFinished">
-      <button class="stop-btn" @click="stopCamera">📴 측정 중지</button>
-      <button class="complete-btn" @click="finishMeasurement">✅ 측정 완료</button>
+      <h2>거북목 측정</h2>
+      <p class="camera-guide">📌 정확한 측정을 위해 카메라는 반드시 사용자의 왼쪽에 설치해주세요.</p>
+      <div class="button-group" v-if="isCapturing && !measurementFinished">
+        <button class="stop-btn" @click="stopCamera">📴 측정 중지</button>
+        <button class="complete-btn" @click="finishMeasurement">✅ 측정 완료</button>
+      </div>
+      <button v-else @click="toggleMeasurement" class="start-btn">📸 측정 시작</button>
     </div>
-    <button v-else @click="toggleMeasurement" class="start-btn">📸 측정 시작</button>
-  </div>
 
     <div v-show="showMeasurementArea && !measurementFinished" class="measurement-area">
       <div class="video-canvas">
         <video ref="video" autoplay muted playsinline></video>
         <canvas ref="canvas"></canvas>
       </div>
-      <p>⏱ 측정 시간: {{ formattedTime }}</p>
+      <p class="timer-text">⏱ 측정 시간: {{ formattedTime }}</p>
     </div>
 
     <div v-if="measurementFinished" class="result-info">
@@ -86,6 +88,7 @@ export default {
   },
   methods: {
     toggleMeasurement() {
+      alert("⚠️ 카메라는 반드시 사용자의 왼쪽에 설치해주세요!");
       this.startCamera();
     },
     openModal(url) {
@@ -122,13 +125,33 @@ export default {
       const worst = this.capturedFrames.reduce((max, f) => (f.angle > max.angle ? f : max), this.capturedFrames[0]);
       const best = this.capturedFrames.reduce((min, f) => (f.angle < min.angle ? f : min), this.capturedFrames[0]);
 
-      const worstId = await this.uploadToServer(worst.dataUrl, "worst", worst.angle);
-      const bestId = await this.uploadToServer(best.dataUrl, "best", best.angle);
+      let bestId = null;
+      let worstId = null;
 
-      this.worstFrameUrl = worst.dataUrl;
-      this.bestFrameUrl = best.dataUrl;
-      this.bestPhotoId = bestId;
-      this.worstPhotoId = worstId;
+      // 📌 best와 worst가 동일할 경우 조건 분기
+      if (best.dataUrl === worst.dataUrl) {
+        if (max > 135) {
+          worstId = await this.uploadToServer(worst.dataUrl, "worst", worst.angle);
+          this.bestFrameUrl = '';
+          this.worstFrameUrl = worst.dataUrl;
+          this.bestPhotoId = null;
+          this.worstPhotoId = worstId;
+        } else {
+          bestId = await this.uploadToServer(best.dataUrl, "best", best.angle);
+          this.bestFrameUrl = best.dataUrl;
+          this.worstFrameUrl = '';
+          this.bestPhotoId = bestId;
+          this.worstPhotoId = null;
+        }
+      } else {
+        // 서로 다르면 둘 다 업로드
+        worstId = await this.uploadToServer(worst.dataUrl, "worst", worst.angle);
+        bestId = await this.uploadToServer(best.dataUrl, "best", best.angle);
+        this.worstFrameUrl = worst.dataUrl;
+        this.bestFrameUrl = best.dataUrl;
+        this.bestPhotoId = bestId;
+        this.worstPhotoId = worstId;
+      }
 
       await fetch("http://210.101.236.158:5000/api/posture/save", {
         method: "POST",
@@ -198,6 +221,7 @@ export default {
 
       pose = new window.Pose({ locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5/${file}` });
       pose.setOptions({ modelComplexity: 1, smoothLandmarks: true, minDetectionConfidence: 0.5, minTrackingConfidence: 0.5 });
+
       pose.onResults((results) => {
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
@@ -264,6 +288,7 @@ export default {
       script.onload = resolve;
       document.head.appendChild(script);
     });
+
     Promise.all([
       loadScript('https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5/pose.js'),
       loadScript('https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js'),
@@ -274,16 +299,36 @@ export default {
 </script>
 
 <style scoped>
+/* 🌐 전체 영역 */
+.main {
+  padding: 20px;
+  text-align: center;
+}
 
+/* 📸 결과 사진 그룹 */
+.result-photo-group {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+.photo-block {
+  text-align: center;
+}
+.photo-block img {
+  width: 300px;
+  border-radius: 12px;
+  border: 3px solid #ccc;
+}
+
+/* 📹 비디오 & 캔버스 영역 */
 .video-canvas {
   position: relative;
   width: 640px;
   height: 480px;
   margin: 0 auto;
 }
-
-video,
-canvas {
+video, canvas {
   position: absolute;
   top: 0;
   left: 0;
@@ -293,12 +338,19 @@ canvas {
   object-fit: cover;
   z-index: 1;
 }
-
 canvas {
-  z-index: 2; /* canvas가 video 위에 올라오도록 */
-  pointer-events: none; /* 클릭 막기 */
+  z-index: 2;
+  pointer-events: none;
 }
 
+/* ⏱ 측정 시간 */
+.timer-text {
+  font-size: 25px;
+  text-align: center;
+  margin-top: 10px;
+}
+
+/* 📋 측정 결과 블럭 */
 .result-info {
   margin-top: 30px;
   background-color: #ffffff;
@@ -311,26 +363,21 @@ canvas {
   font-size: 22px;
   text-align: left;
 }
-
 .stat-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 15px;
-  font-size: 22px;
 }
-
 .label {
   font-weight: 600;
   color: #333;
 }
-
 .value {
   color: #007BFF;
   font-weight: bold;
   font-size: 18px;
 }
-
 .message {
   text-align: center;
   color: #28a745;
@@ -339,6 +386,7 @@ canvas {
   margin: 20px 0;
 }
 
+/* 🔁 다시 측정 버튼 */
 .restart-btn {
   padding: 14px 24px;
   background-color: #4caf50;
@@ -348,15 +396,63 @@ canvas {
   cursor: pointer;
   font-weight: bold;
   width: 100%;
-  font-size: 22x;
+  font-size: 18px;
 }
 .restart-btn:hover {
   background-color: #388e3c;
 }
+
+/* 🧭 제목 및 안내 */
 .title-group {
   display: flex;
   flex-direction: column;
   align-items: center;
+  text-align: center;
   margin-bottom: 20px;
 }
+.camera-guide {
+  color: #e53935;
+  font-weight: bold;
+  font-size: 22px;
+  text-align: center;
+  margin-bottom: 12px;
+}
+
+/* 🧭 버튼들 (측정 시작/중지/완료) */
+.button-group {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+.start-btn,
+.stop-btn,
+.complete-btn {
+  padding: 10px 16px;
+  font-weight: bold;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  color: white;
+}
+
+/* 각 버튼 색상 */
+.start-btn {
+  background-color: #1976d2;
+}
+.start-btn:hover {
+  background-color: #1565c0;
+}
+.stop-btn {
+  background-color: #f44336;
+}
+.stop-btn:hover {
+  background-color: #c62828;
+}
+.complete-btn {
+  background-color: #4caf50;
+}
+.complete-btn:hover {
+  background-color: #388e3c;
+}
+
 </style>

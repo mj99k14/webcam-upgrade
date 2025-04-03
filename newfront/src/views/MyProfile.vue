@@ -14,7 +14,6 @@
       @stopCamera="stopCamera"
     />
 
-
     <div class="photo-list-section">
       <PhotoList
         :filteredPhotos="filteredPhotos"
@@ -65,6 +64,19 @@ export default {
     const modalPhotoUrl = ref(null);
     const bestPhoto = ref(null);
     const worstPhoto = ref(null);
+    const cameraActive = ref(false);
+
+    const startCamera = () => {
+      cameraActive.value = true;
+    };
+
+    const stopCamera = () => {
+      cameraActive.value = false;
+    };
+
+    const handlePhotoUploaded = () => {
+      fetchPhotos();
+    };
 
     watch(selectedDate, (newDate) => {
       if (!newDate) return;
@@ -133,15 +145,6 @@ export default {
       }
     };
 
-    const handlePhotoUploaded = () => {
-      fetchPhotos();
-    };
-
-    const stopCamera = () => {
-    cameraActive.value = false;
-  };
-
-
     const deletePhoto = async (id) => {
       try {
         const res = await axios.delete(`http://210.101.236.158:5000/api/photos/${id}`);
@@ -190,6 +193,7 @@ export default {
       photos,
       bestPhoto,
       worstPhoto,
+      cameraActive,
       selectedPhoto,
       deletePhoto,
       showPhoto,
@@ -199,7 +203,9 @@ export default {
       formatTime,
       selectedDate,
       filteredPhotos,
-      PhotoModal, 
+      startCamera,
+      stopCamera,
+      modalPhotoUrl,
     };
   }
 };
