@@ -18,9 +18,13 @@
       <h3>선택한 사진</h3>
       <img :src="`http://210.101.236.158:5000${selectedPhoto.photo_url}`" alt="선택한 사진" class="selected-photo" />
     </div>
+
     <!-- 🟢 가장 좋은 자세 목록 -->
     <div class="section">
-      <h3>🟢 가장 좋은 자세 ({{ bestPhotos.length }}장)</h3>
+      <div class="section-header">
+        <h3>🟢 가장 좋은 자세 ({{ bestPhotos.length }}장)</h3>
+        <button class="delete-all-btn" @click="deleteAll('best')">🗑 전체 삭제</button>
+      </div>
       <div class="scroll-block">
         <div v-for="photo in bestPhotos" :key="photo.id">
           <PhotoItem
@@ -35,7 +39,10 @@
 
     <!-- 🟠 가장 나쁜 자세 목록 -->
     <div class="section">
-      <h3>🟠 가장 나쁜 자세 ({{ worstPhotos.length }}장)</h3>
+      <div class="section-header">
+        <h3>🟠 가장 나쁜 자세 ({{ worstPhotos.length }}장)</h3>
+        <button class="delete-all-btn" @click="deleteAll('worst')">🗑 전체 삭제</button>
+      </div>
       <div class="scroll-block">
         <div v-for="photo in worstPhotos" :key="photo.id">
           <PhotoItem
@@ -59,15 +66,27 @@ export default {
     filteredPhotos: Array,
     selectedPhoto: Object,
     selectedDate: String,
-    formatTime: Function
+    formatTime: Function,
   },
-  emits: ['showPhoto', 'deletePhoto', 'update:selectedDate'],
+  emits: ['showPhoto', 'deletePhoto', 'update:selectedDate', 'handlePhotoUploaded'],
   computed: {
     bestPhotos() {
       return this.filteredPhotos.filter(photo => photo.type === 'best');
     },
     worstPhotos() {
       return this.filteredPhotos.filter(photo => photo.type === 'worst');
+    },
+  },
+  methods: {
+    async deleteAll(type) {
+      const confirmMsg = type === 'best' ? '가장 좋은 자세 사진을 모두 삭제하시겠습니까?' : '가장 나쁜 자세 사진을 모두 삭제하시겠습니까?';
+      if (!confirm(confirmMsg)) return;
+
+      const targets = this.filteredPhotos.filter(photo => photo.type === type);
+      for (const photo of targets) {
+        await this.$emit('deletePhoto', photo.id);
+      }
+      this.$emit('handlePhotoUploaded');
     }
   }
 };
@@ -110,5 +129,26 @@ export default {
   padding-right: 10px;
   border-top: 1px solid #ddd;
   margin-top: 8px;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.delete-all-btn {
+  background-color: #e53935;
+  color: white;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 14px;
+}
+.delete-all-btn:hover {
+  background-color: #c62828;
 }
 </style>
