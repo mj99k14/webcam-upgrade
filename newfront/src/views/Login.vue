@@ -1,8 +1,17 @@
 <template>
-  <div class="container">
-    <h1>Google login</h1>
-    <button @click="handleGoogleLogin">Google 로그인</button>
-    <p v-if="errorMessage" class="error">{{ errorMessage }}</p>
+  <div class="login-wrapper">
+    <div class="login-card">
+      <div class="title">Google 로그인</div>
+      <button class="google-btn" @click="handleGoogleLogin">
+        <img
+          src="https://developers.google.com/identity/images/g-logo.png"
+          alt="Google logo"
+          class="google-icon"
+        />
+        Google로 로그인
+      </button>
+      <p v-if="errorMessage" class="error">{{ errorMessage }}</p>
+    </div>
   </div>
 </template>
 
@@ -14,35 +23,31 @@ const router = useRouter();
 const errorMessage = ref("");
 const googleLoaded = ref(false);
 
-// ✅ Google API 로드 함수
+// ✅ Google API 로드
 const loadGoogleAPI = async () => {
   if (window.google) {
-    console.log("✅ Google API 이미 로드됨");
     googleLoaded.value = true;
     return;
   }
 
-  return new Promise((resolve, reject) => { //비동기 작업 처리리
+  return new Promise((resolve, reject) => {
     const script = document.createElement("script");
     script.src = "https://accounts.google.com/gsi/client";
     script.async = true;
     script.defer = true;
     script.onload = () => {
-      console.log("Google API 로드 성공!");
       googleLoaded.value = true;
-      resolve();// 성공했을때
+      resolve();
     };
     script.onerror = () => {
-      console.error("❌ Google API 로드 실패");
-      reject();//실패했을때
+      reject();
     };
 
-    document.head.appendChild(script); //html에 붙침
+    document.head.appendChild(script);
   });
 };
 
-//  페이지 로드 시 Google API 로드
-onMounted(() => { //맨처음으로 뜸
+onMounted(() => {
   loadGoogleAPI();
 });
 
@@ -54,77 +59,114 @@ const handleGoogleLogin = () => {
   }
 
   const client = google.accounts.oauth2.initCodeClient({
-    client_id: "446715005253-c6g8ue0ibnj7s7gusshngdjloe36dn5v.apps.googleusercontent.com",
-    scope: "email profile", // 구글에서 접근할 범위위
+    client_id:
+      "446715005253-c6g8ue0ibnj7s7gusshngdjloe36dn5v.apps.googleusercontent.com",
+    scope: "email profile",
     redirect_uri: "http://localhost:5173/auth/callback",
-    ux_mode: "redirect", // 자동으로 페이지 (주소) 보냄
+    ux_mode: "redirect",
     callback: (response) => {
       if (!response.code) {
         alert("Google 로그인 실패: 인증 코드를 받지 못했습니다.");
         return;
       }
 
-      //  인증 코드를 백엔드로 전송하여 액세스 토큰 교환
       fetch("http://210.101.236.158:5000/api/auth/google", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ code: response.code }),
       })
-        .then(res => res.json()) //성공했을때
-        .then(data => { //성공했을떄 
+        .then((res) => res.json())
+        .then((data) => {
           if (data.success) {
             alert("로그인 성공!");
-            localStorage.setItem("token", data.token); //  토큰 저장
+            localStorage.setItem("token", data.token);
             localStorage.setItem("user", JSON.stringify(data.user));
-            router.push("/myprofile"); // 마이페이지로 이동
+            router.push("/myprofile");
           } else if (data.message === "회원가입이 필요합니다.") {
             router.push({
               path: "/register",
-              query: { email: data.email, name: data.name, picture: data.picture }
+              query: {
+                email: data.email,
+                name: data.name,
+                picture: data.picture,
+              },
             });
           } else {
             alert("로그인 실패: " + data.message);
           }
         })
-        .catch(error => {   //실패
+        .catch((error) => {
           console.error("Google 로그인 요청 실패:", error);
           errorMessage.value = "Google 로그인 요청 실패!";
         });
-    }
+    },
   });
 
-  client.requestCode(); // Google 로그인 요청
+  client.requestCode();
 };
 </script>
 
 <style scoped>
-/* ✅ 중앙 정렬을 위한 스타일 추가 */
-.container {
+/* 전체 배경 및 중앙 정렬 */
+.login-wrapper {
   display: flex;
-  flex-direction: column;
   justify-content: center;
   align-items: center;
-  height: 100vh; /* 화면 전체 높이 */
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f8fafc, #e2e8f0);
+  padding: 0 20px;
+}
+
+/* 카드 스타일 */
+.login-card {
+  background: white;
+  padding: 40px 50px;
+  border-radius: 16px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
   text-align: center;
+  width: 100%;
+  max-width: 400px;
 }
 
-button {
-  padding: 10px 20px;
-  font-size: 16px;
-  cursor: pointer;
-  background-color: #4285F4;
+/* 제목 글씨 크게 */
+.title {
+  font-size: 36px;
+  font-weight: 700;
+  margin-bottom: 24px;
+}
+
+/* Google 로그인 버튼 */
+.google-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background-color: #4285f4;
   color: white;
+  padding: 12px 24px;
+  font-size: 16px;
   border: none;
-  border-radius: 5px;
-  margin-top: 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  width: 100%;
+  max-width: 260px;
+  margin: 0 auto;
 }
 
-button:hover {
+.google-btn:hover {
   background-color: #357ae8;
 }
 
+.google-icon {
+  width: 20px;
+  height: 20px;
+}
+
+/* 에러 메시지 */
 .error {
   color: red;
-  margin-top: 10px;
+  margin-top: 15px;
+  font-size: 14px;
 }
 </style>
