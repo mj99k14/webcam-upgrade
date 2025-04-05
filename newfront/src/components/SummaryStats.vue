@@ -24,7 +24,6 @@
       <p>🗓️ 최근 촬영일: {{ lastTaken }}</p>
     </div>
 
-    <button class="calendar-btn" @click="goToCalendar">📅 자세 캘린더 보기</button>
   </div>
 </template>
 
