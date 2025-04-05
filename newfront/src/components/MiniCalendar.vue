@@ -1,20 +1,27 @@
-<!-- src/components/MiniCalendar.vue -->
 <template>
     <div class="mini-calendar">
-      <h4>📅 자세 캘린더</h4>
+      <div class="calendar-header">
+        <button @click="prevMonth">◀️</button>
+        <span>{{ year }}년 {{ month + 1 }}월</span>
+        <button @click="nextMonth">▶️</button>
+      </div>
+  
       <div class="calendar-grid">
+        <div class="day-label" v-for="label in ['일','월','화','수','목','금','토']" :key="label">
+          {{ label }}
+        </div>
+  
         <div
-          v-for="day in days"
-          :key="day.date"
-          class="day"
+          v-for="(cell, index) in calendarCells"
+          :key="index"
+          class="day-cell"
           :class="[
-            day.status === 'bad' ? 'red' : 'green',
-            getDayOfWeek(day.date) === '일' || getDayOfWeek(day.date) === '토' ? 'weekend' : ''
+            cell.isCurrentMonth ? (cell.status === 'bad' ? 'red' : cell.status === 'good' ? 'green' : '') : 'disabled',
+            getDayClass(index)
           ]"
-          :title="`${day.date} (${getDayOfWeek(day.date)}) - ${day.status === 'bad' ? '거북목' : '정상'}`"
+          :title="cell.status ? `${cell.date} - ${cell.status === 'bad' ? '거북목' : '정상'}` : ''"
         >
-          <div class="day-number">{{ formatDate(day.date) }}</div>
-          <div class="day-name">{{ getDayOfWeek(day.date) }}</div>
+          {{ cell.day }}
         </div>
       </div>
     </div>
@@ -24,21 +31,85 @@
   export default {
     name: 'MiniCalendar',
     props: ['stats'], // [{ date: '2025-04-06', status: 'bad' }, ...]
+    data() {
+      const today = new Date();
+      return {
+        year: today.getFullYear(),
+        month: today.getMonth()
+      };
+    },
     computed: {
-      days() {
-        return this.stats?.slice(-14) || [];
+      dateStatusMap() {
+        const map = {};
+        this.stats?.forEach(s => {
+          map[s.date] = s.status;
+        });
+        return map;
+      },
+      calendarCells() {
+        const firstDay = new Date(this.year, this.month, 1);
+        const startDayOfWeek = firstDay.getDay(); // 0 (일) ~ 6 (토)
+  
+        const daysInMonth = new Date(this.year, this.month + 1, 0).getDate(); // 현재 달
+        const prevMonthDays = new Date(this.year, this.month, 0).getDate(); // 이전 달
+  
+        const cells = [];
+  
+        // 앞 빈 칸 (이전 달 날짜 표시)
+        for (let i = startDayOfWeek - 1; i >= 0; i--) {
+          const d = new Date(this.year, this.month - 1, prevMonthDays - i);
+          cells.push({
+            day: d.getDate(),
+            date: d.toISOString().split('T')[0],
+            isCurrentMonth: false,
+          });
+        }
+  
+        // 현재 달 날짜
+        for (let i = 1; i <= daysInMonth; i++) {
+          const d = new Date(this.year, this.month, i);
+          const iso = d.toISOString().split('T')[0];
+          cells.push({
+            day: i,
+            date: iso,
+            isCurrentMonth: true,
+            status: this.dateStatusMap[iso] || null
+          });
+        }
+  
+        // 뒷 빈 칸 (다음 달 날짜 표시)
+        while (cells.length % 7 !== 0) {
+          const d = new Date(this.year, this.month + 1, cells.length - daysInMonth - startDayOfWeek + 1);
+          cells.push({
+            day: d.getDate(),
+            date: d.toISOString().split('T')[0],
+            isCurrentMonth: false,
+          });
+        }
+  
+        return cells;
       }
     },
     methods: {
-      formatDate(dateStr) {
-        const d = new Date(dateStr);
-        const month = d.getMonth() + 1;
-        const day = d.getDate().toString().padStart(2, '0');
-        return `${month}/${day}`;
+      prevMonth() {
+        if (this.month === 0) {
+          this.year--;
+          this.month = 11;
+        } else {
+          this.month--;
+        }
       },
-      getDayOfWeek(dateStr) {
-        const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
-        return dayNames[new Date(dateStr).getDay()];
+      nextMonth() {
+        if (this.month === 11) {
+          this.year++;
+          this.month = 0;
+        } else {
+          this.month++;
+        }
+      },
+      getDayClass(index) {
+        const dayOfWeek = index % 7;
+        return dayOfWeek === 0 || dayOfWeek === 6 ? 'weekend' : '';
       }
     }
   };
@@ -54,32 +125,42 @@
     box-shadow: 0 1px 5px rgba(0,0,0,0.05);
   }
   
+  .calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    font-weight: bold;
+  }
+  
+  .calendar-header button {
+    background-color: transparent;
+    border: none;
+    font-size: 16px;
+    cursor: pointer;
+  }
+  
   .calendar-grid {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
     gap: 6px;
-    margin-top: 10px;
   }
   
-  .day {
-    padding: 6px 4px;
-    border-radius: 8px;
-    text-align: center;
+  .day-label {
     font-weight: bold;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    font-size: 12px;
-    line-height: 1.2;
-  }
-  
-  .day-number {
+    text-align: center;
+    color: #555;
     font-size: 13px;
   }
   
-  .day-name {
-    font-size: 11px;
-    opacity: 0.7;
+  .day-cell {
+    height: 42px;
+    border-radius: 8px;
+    text-align: center;
+    line-height: 40px;
+    font-size: 13px;
+    font-weight: bold;
+    background-color: #fff;
   }
   
   .red {
@@ -92,8 +173,11 @@
     color: #000;
   }
   
+  .disabled {
+    opacity: 0.3;
+  }
+  
   .weekend {
-    opacity: 0.85;
     font-style: italic;
   }
   </style>

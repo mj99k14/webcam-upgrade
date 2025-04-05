@@ -22,8 +22,11 @@
       <button class="delete" @click="$emit('deleteAccount')">회원 탈퇴</button>
     </div>
 
-    <!-- 캘린더 삽입 -->
-    <MiniCalendar :stats="calendarStats" />
+    <!-- 📅 미니 캘린더 -->
+    <div class="calendar-section">
+      <p class="calendar-title"><strong>📅 이번달 자세</strong></p>
+      <MiniCalendar :stats="calendarStats" />
+    </div>
   </div>
 </template>
 
@@ -97,4 +100,30 @@ export default {
   cursor: pointer;
   font-weight: 600;
 }
+
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr); /* ✅ 4칸씩 */
+  gap: 6px;
+  margin-top: 10px;
+}
+.day {
+  padding: 6px;
+  text-align: center;
+  border-radius: 6px;
+  font-weight: bold;
+  font-size: 12px;
+  line-height: 1.4;
+}
+.calendar-section {
+  margin-top: 30px; /* 캘린더 위 간격 */
+  text-align: center;
+}
+
+.calendar-title {
+  margin-bottom: 10px; /* 제목과 캘린더 사이 여백 */
+  font-size: 15px;
+}
+
 </style>
