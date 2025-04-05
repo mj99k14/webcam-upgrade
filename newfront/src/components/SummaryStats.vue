@@ -21,8 +21,10 @@
       <p>총 촬영일 수: <strong>{{ dailyStats.length }}</strong>일</p>
       <p>평균 목 각도: <strong>{{ overallAverage.toFixed(1) }}</strong>°</p>
       <p>거북목 비율(135° 이상): <strong>{{ highAngleRatio }}%</strong></p>
-      <p>📅 최근 촬영일: {{ lastTaken }}</p>
+      <p>🗓️ 최근 촬영일: {{ lastTaken }}</p>
     </div>
+
+    <button class="calendar-btn" @click="goToCalendar">📅 자세 캘린더 보기</button>
   </div>
 </template>
 
@@ -129,6 +131,11 @@ export default {
         }
       };
     }
+  },
+  methods: {
+    goToCalendar() {
+      this.$router.push('/calendar');
+    }
   }
 };
 </script>
@@ -186,5 +193,19 @@ export default {
 }
 .risk-level-text .low {
   color: green;
+}
+
+.calendar-btn {
+  margin-top: 20px;
+  background: #1976d2;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+}
+.calendar-btn:hover {
+  background: #1565c0;
 }
 </style>
