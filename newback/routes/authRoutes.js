@@ -15,12 +15,13 @@ router.post("/google", async (req, res) => {
 
         // ? Google API에 인증 코드 보내서 토큰 받기
         const tokenResponse = await axios.post("https://oauth2.googleapis.com/token", {
-            client_id: "446715005253-ogaai2h0bddu14btud78896vu83mpapa.apps.googleusercontent.com",
-            client_secret: "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",
-            redirect_uri: "http://localhost:5173/auth/callback",
+            client_id: process.env.GOOGLE_CLIENT_ID,
+            client_secret: process.env.GOOGLE_CLIENT_SECRET,
+            redirect_uri: process.env.FRONTEND_URL + "/auth/callback",
             grant_type: "authorization_code",
             code: code,
         });
+
 
         console.log("? 토큰 응답:", tokenResponse.data); // ? Google에서 받은 응답 확인
         const { access_token } = tokenResponse.data;

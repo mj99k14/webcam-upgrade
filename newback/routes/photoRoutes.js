@@ -1,11 +1,12 @@
-const fs = require("fs");
+// ✅ routes/photoRoutes.js
 const express = require("express");
 const multer = require("multer");
-const db = require("../config/database");
 const path = require("path");
+const fs = require("fs");
+const db = require("../config/database");
 
 const router = express.Router();
-
+const uploadBasePath = "/home/yarimasu/kmj1999";
 // ✅ uploads 폴더 없으면 생성
 const uploadDir = "uploads";
 if (!fs.existsSync(uploadDir)) {
@@ -14,92 +15,159 @@ if (!fs.existsSync(uploadDir)) {
 
 // ✅ multer 저장 설정
 const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, uploadDir);
-    },
-    filename: (req, file, cb) => {
-        cb(null, Date.now() + path.extname(file.originalname));
-    },
+    destination: (req, file, cb) => cb(null, uploadDir),
+    filename: (req, file, cb) => cb(null, Date.now() + path.extname(file.originalname))
 });
-router.post("/save", upload.single("photo"), controller.savePostureResult); // 측정 결과 저장
-router.get("/history", controller.getPostureHistory); // 자세 이력 조회
+const upload = multer({ storage });
 
-const upload = multer({ storage });  // ✅ 누락되지 않게 반드시 선언
-
-// ✅ 사진 업로드 API
+// ✅ 사진 업로드 API (단일)
 router.post("/upload", (req, res) => {
     upload.single("photo")(req, res, async (err) => {
-        if (err) {
-            console.error("❌ Multer 에러:", err);
-            return res.status(500).json({ success: false, message: "파일 업로드 오류" });
-        }
+        if (err) return res.status(500).json({ success: false, message: "파일 업로드 오류" });
 
-        // ✅ 여기서 req.body 로그 찍기
-        console.log("✅ req.body:", req.body);
-        console.log("✅ req.file:", req.file);
-
-        const user_id = Number(req.body.user_id);
-        const neck_angle = parseFloat(req.body.neck_angle);
-        const shoulder_angle = parseFloat(req.body.shoulder_angle);
+        const { user_id, neck_angle, type } = req.body;
         const filename = req.file?.filename;
-
-        if (!user_id || !filename) {
-            return res.status(400).json({ success: false, message: "필수 데이터 없음" });
-        }
+        if (!user_id || !filename) return res.status(400).json({ success: false, message: "필수 데이터 없음" });
 
         const photoUrl = `/uploads/${filename}`;
+        const neck = parseFloat(neck_angle) || 0;
+        const cleanType = (type || '').trim().toLowerCase();
+        const photoType = ['best', 'worst', 'normal'].includes(cleanType) ? cleanType : 'normal';
 
         try {
-            await db.promise().query(
-                `INSERT INTO cam_photos (user_id, photo_url, neck_angle, shoulder_angle, uploaded_at)
-         VALUES (?, ?, ?, ?, NOW())`,
-                [user_id, photoUrl, neck_angle, shoulder_angle]
+            const [result] = await db.promise().query(
+                `INSERT INTO cam_photos (user_id, photo_url, neck_angle, uploaded_at, type)
+                 VALUES (?, ?, ?, NOW(), ?)`,
+                [Number(user_id), photoUrl, neck, photoType]
             );
-            res.json({ success: true, message: "업로드 성공", photo_url: photoUrl });
+            res.json({ success: true, message: "업로드 성공", photo_url: photoUrl, photo_id: result.insertId });
         } catch (error) {
-            console.error("❌ DB 저장 오류:", error);
             res.status(500).json({ success: false, message: "DB 오류", error: error.message });
         }
     });
 });
 
-
-// ✅ 특정 사용자 사진 조회
-router.get("/", async (req, res) => {
+// ✅ 사진 업로드 API (best/worst 한쌍)
+router.post("/upload-pair", upload.fields([
+    { name: "best", maxCount: 1 },
+    { name: "worst", maxCount: 1 }
+]), async (req, res) => {
     try {
-        const { user_id } = req.query;
-        if (!user_id) {
-            return res.status(400).json({ success: false, message: "user_id가 필요합니다." });
+        const { user_id, best_angle, worst_angle } = req.body;
+        const best = req.files.best?.[0];
+        const worst = req.files.worst?.[0];
+        if (!user_id || (!best && !worst)) return res.status(400).json({ success: false, message: "필수 데이터 누락" });
+
+        const results = [];
+
+        if (best) {
+            const bestUrl = `/uploads/${best.filename}`;
+            const angle = parseFloat(best_angle) || 0;
+            const [result] = await db.promise().query(
+                `INSERT INTO cam_photos (user_id, photo_url, neck_angle, uploaded_at, type)
+                 VALUES (?, ?, ?, NOW(), ?)`,
+                [user_id, bestUrl, angle, 'best']
+            );
+            results.push({ type: 'best', photo_id: result.insertId });
         }
 
+        if (worst) {
+            const worstUrl = `/uploads/${worst.filename}`;
+            const angle = parseFloat(worst_angle) || 0;
+            const [result] = await db.promise().query(
+                `INSERT INTO cam_photos (user_id, photo_url, neck_angle, uploaded_at, type)
+                 VALUES (?, ?, ?, NOW(), ?)`,
+                [user_id, worstUrl, angle, 'worst']
+            );
+            results.push({ type: 'worst', photo_id: result.insertId });
+        }
+
+        res.json({ success: true, message: "업로드 완료", results });
+    } catch (err) {
+        res.status(500).json({ success: false, message: "서버 오류", error: err.message });
+    }
+});
+
+// ✅ 사진 목록
+router.get("/", async (req, res) => {
+    const { user_id } = req.query;
+    if (!user_id) return res.status(400).json({ success: false, message: "user_id가 필요합니다." });
+    try {
         const [photos] = await db.promise().query(
             "SELECT * FROM cam_photos WHERE user_id = ? ORDER BY uploaded_at ASC",
             [user_id]
         );
-
         res.json(photos);
     } catch (error) {
-        console.error("❌ 사진 목록 조회 오류:", error);
         res.status(500).json({ success: false, message: "서버 오류" });
     }
 });
 
-// ✅ 사진 삭제 API
+// ✅ 타입별 사진 필터
+router.get("/filter", async (req, res) => {
+    const { user_id, type } = req.query;
+    if (!user_id || !type) return res.status(400).json({ success: false, message: "user_id 또는 type이 누락됨" });
+    try {
+        const [rows] = await db.promise().query(
+            `SELECT * FROM cam_photos WHERE user_id = ? AND type = ? ORDER BY uploaded_at DESC`,
+            [user_id, type]
+        );
+        res.json({ success: true, photos: rows });
+    } catch (err) {
+        res.status(500).json({ success: false, message: "DB 오류", error: err.message });
+    }
+});
+
+// ✅ 날짜별 그룹
+router.get("/grouped-by-date", async (req, res) => {
+    const { user_id } = req.query;
+    if (!user_id) return res.status(400).json({ success: false, message: "user_id 필요" });
+    try {
+        const [rows] = await db.promise().query(
+            `SELECT id, photo_url, neck_angle, uploaded_at, type, DATE(uploaded_at) as date
+             FROM cam_photos
+             WHERE user_id = ? AND type IN ('best', 'worst')
+             ORDER BY uploaded_at DESC`,
+            [user_id]
+        );
+
+        const grouped = {};
+        for (const photo of rows) {
+            const date = photo.date;
+            if (!grouped[date]) grouped[date] = { best: [], worst: [] };
+            if (photo.type === 'best') grouped[date].best.push(photo);
+            if (photo.type === 'worst') grouped[date].worst.push(photo);
+        }
+        res.json({ success: true, grouped });
+    } catch (err) {
+        res.status(500).json({ success: false, message: "DB 오류", error: err.message });
+    }
+});
+
+// ✅ 사진 삭제 (DB + 실제 파일 삭제)
 router.delete("/:id", async (req, res) => {
     try {
         const { id } = req.params;
-
         const [[photo]] = await db.promise().query("SELECT * FROM cam_photos WHERE id = ?", [id]);
-        if (!photo) {
-            return res.status(404).json({ success: false, message: "사진 없음" });
+        if (!photo) return res.status(404).json({ success: false, message: "사진 없음" });
+
+        // 실제 파일 삭제
+        const relativePath = photo.photo_url.replace(/^\/+/, ''); // uploads/xxx.jpg
+        const filePath = path.join(uploadBasePath, relativePath);
+        console.log("🧹 삭제 시도:", filePath);
+
+        if (fs.existsSync(filePath)) {
+            fs.unlinkSync(filePath); // ✅ 동기로 처리
+            console.log("🗑️ 실제 파일 삭제:", filePath);
+        } else {
+            console.warn("⚠️ 파일이 존재하지 않음:", filePath);
         }
 
-        // DB에서 삭제
-        await db.promise().query("DELETE FROM cam_photos WHERE id = ?", [id]);
 
+        await db.promise().query("DELETE FROM cam_photos WHERE id = ?", [id]);
         res.json({ success: true, message: "삭제 완료" });
     } catch (error) {
-        console.error("❌ 사진 삭제 오류:", error);
+        console.error("🚨 삭제 오류:", error);
         res.status(500).json({ success: false, message: "서버 오류" });
     }
 });
