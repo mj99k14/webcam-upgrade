@@ -125,47 +125,50 @@ export default {
       const worst = this.capturedFrames.reduce((max, f) => (f.angle > max.angle ? f : max), this.capturedFrames[0]);
       const best = this.capturedFrames.reduce((min, f) => (f.angle < min.angle ? f : min), this.capturedFrames[0]);
 
-      let bestId = null;
-      let worstId = null;
+      let bestResult = null;
+      let worstResult = null;
 
-      // 📌 best와 worst가 동일할 경우 조건 분기
       if (best.dataUrl === worst.dataUrl) {
         if (max > 135) {
-          worstId = await this.uploadToServer(worst.dataUrl, "worst", worst.angle);
+          worstResult = await this.uploadToServer(worst.dataUrl, "worst", worst.angle);
           this.bestFrameUrl = '';
-          this.worstFrameUrl = worst.dataUrl;
+          this.worstFrameUrl = worstResult?.url || '';
           this.bestPhotoId = null;
-          this.worstPhotoId = worstId;
+          this.worstPhotoId = worstResult?.id || null;
         } else {
-          bestId = await this.uploadToServer(best.dataUrl, "best", best.angle);
-          this.bestFrameUrl = best.dataUrl;
+          bestResult = await this.uploadToServer(best.dataUrl, "best", best.angle);
+          this.bestFrameUrl = bestResult?.url || '';
           this.worstFrameUrl = '';
-          this.bestPhotoId = bestId;
+          this.bestPhotoId = bestResult?.id || null;
           this.worstPhotoId = null;
         }
       } else {
-        // 서로 다르면 둘 다 업로드
-        worstId = await this.uploadToServer(worst.dataUrl, "worst", worst.angle);
-        bestId = await this.uploadToServer(best.dataUrl, "best", best.angle);
-        this.worstFrameUrl = worst.dataUrl;
-        this.bestFrameUrl = best.dataUrl;
-        this.bestPhotoId = bestId;
-        this.worstPhotoId = worstId;
+        worstResult = await this.uploadToServer(worst.dataUrl, "worst", worst.angle);
+        bestResult = await this.uploadToServer(best.dataUrl, "best", best.angle);
+        this.worstFrameUrl = worstResult?.url || '';
+        this.bestFrameUrl = bestResult?.url || '';
+        this.bestPhotoId = bestResult?.id || null;
+        this.worstPhotoId = worstResult?.id || null;
       }
 
-      await fetch("http://210.101.236.158:5000/api/posture/save", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          user_id: userId,
-          average_neck_angle: avg,
-          max_neck_angle: max,
-          duration: this.elapsedSeconds,
-          best_photo_id: bestId,
-          worst_photo_id: worstId,
-          feedback: max > 135 ? "거북목 의심" : "정상",
-        }),
-      });
+      try {
+        await fetch("http://210.101.236.158:5000/api/posture/save", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            user_id: userId,
+            average_neck_angle: avg,
+            max_neck_angle: max,
+            duration: this.elapsedSeconds,
+            best_photo_id: bestResult?.id || null,
+            worst_photo_id: worstResult?.id || null,
+            feedback: max > 135 ? "거북목 의심" : "정상",
+          }),
+        });
+      } catch (err) {
+        console.error("측정 결과 저장 실패:", err);
+        alert("📛 측정 결과를 서버에 저장하는 도중 오류가 발생했습니다.");
+      }
 
       this.isCapturing = false;
       this.measurementFinished = true;
@@ -194,7 +197,10 @@ export default {
         const data = await res.json();
         if (data.success) {
           this.$emit('handlePhotoUploaded');
-          return data.photo_id || null;
+          return {
+            id: data.photo_id || null,
+            url: `http://210.101.236.158:5000${data.photo_url}` // ✅ 절대 경로
+          };
         } else {
           alert('업로드 실패: ' + data.message);
           return null;
@@ -297,6 +303,7 @@ export default {
   },
 };
 </script>
+
 
 <style scoped>
 /* 🌐 전체 영역 */
