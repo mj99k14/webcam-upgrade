@@ -138,20 +138,28 @@ export default {
       try {
         const res = await axios.get(`http://210.101.236.158:5000/api/photos?user_id=${user.value.id}`);
         photos.value = res.data;
+
+        // 최신 사진을 기준으로 정렬
         const sorted = [...photos.value].sort((a, b) => new Date(b.uploaded_at) - new Date(a.uploaded_at));
         const latestDate = sorted[0]?.uploaded_at?.split("T")[0];
+
         if (latestDate) {
           selectedDate.value = latestDate;
           const latestPhotos = sorted.filter(p => p.uploaded_at.split('T')[0] === latestDate);
           selectedPhoto.value = latestPhotos[0] || null;
         }
+
+        // 가장 좋은 자세 / 나쁜 자세 다시 찾기
+        bestPhoto.value = photos.value.find(p => p.type === 'best') || null;
+        worstPhoto.value = photos.value.find(p => p.type === 'worst') || null;
+
       } catch (err) {
         console.error("🚨 사진 목록 오류:", err);
       }
     };
 
-    const handlePhotoUploaded = () => {
-      fetchPhotos();
+    const handlePhotoUploaded = async () => {
+      await fetchPhotos(); // 사진 업로드 후 목록 갱신
     };
 
     const deletePhoto = async (id) => {
@@ -159,15 +167,27 @@ export default {
         const res = await axios.delete(`http://210.101.236.158:5000/api/photos/${id}`);
         if (res.data.success) {
           alert("사진이 삭제되었습니다.");
+
+          // 삭제된 사진이 현재 best 또는 worst 라면 초기화
+          if (bestPhoto.value && bestPhoto.value.id === id) {
+            bestPhoto.value = null;
+          }
+          if (worstPhoto.value && worstPhoto.value.id === id) {
+            worstPhoto.value = null;
+          }
+
           if (selectedPhoto.value && selectedPhoto.value.id === id) {
             selectedPhoto.value = null;
           }
-          fetchPhotos();
+
+          await fetchPhotos(); // 목록도 다시 불러오기
         }
       } catch (err) {
         console.error("🚨 사진 삭제 오류:", err);
       }
     };
+
+
 
     const showPhoto = (photo) => {
       selectedPhoto.value = photo;
