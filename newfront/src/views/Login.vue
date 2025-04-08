@@ -2,7 +2,7 @@
   <div class="login-wrapper">
     <div class="login-card">
       <div class="title">Google 로그인</div>
-      <button class="google-btn" @click="handleGoogleLogin">
+      <button class="google-btn" @click="redirectToGoogle">
         <img
           src="https://developers.google.com/identity/images/g-logo.png"
           alt="Google logo"
@@ -10,104 +10,26 @@
         />
         Google로 로그인
       </button>
-      <p v-if="errorMessage" class="error">{{ errorMessage }}</p>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
-import { useRouter } from "vue-router";
+// ✅ 구글 로그인으로 직접 이동 (프론트 → 구글)
+const redirectToGoogle = () => {
+  const clientId = "446715005253-c6g8ue0ibnj7s7gusshngdjloe36dn5v.apps.googleusercontent.com";
+  const redirectUri = "http://localhost:5173/auth/callback";
+  const scope = "profile email";
+  const responseType = "code";
+  const accessType = "offline";
 
-const router = useRouter();
-const errorMessage = ref("");
-const googleLoaded = ref(false);
+  const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=${responseType}&scope=${scope}&access_type=${accessType}`;
 
-// ✅ Google API 로드
-const loadGoogleAPI = async () => {
-  if (window.google) {
-    googleLoaded.value = true;
-    return;
-  }
-
-  return new Promise((resolve, reject) => {
-    const script = document.createElement("script");
-    script.src = "https://accounts.google.com/gsi/client";
-    script.async = true;
-    script.defer = true;
-    script.onload = () => {
-      googleLoaded.value = true;
-      resolve();
-    };
-    script.onerror = () => {
-      reject();
-    };
-
-    document.head.appendChild(script);
-  });
-};
-
-onMounted(() => {
-  loadGoogleAPI();
-});
-
-// ✅ Google 로그인 처리
-const handleGoogleLogin = () => {
-  if (!googleLoaded.value) {
-    alert("Google API가 로드되지 않았습니다. 페이지를 새로고침하세요.");
-    return;
-  }
-
-  const client = google.accounts.oauth2.initCodeClient({
-    client_id:
-      "446715005253-c6g8ue0ibnj7s7gusshngdjloe36dn5v.apps.googleusercontent.com",
-    scope: "email profile",
-    redirect_uri: "http://localhost:5173/auth/callback",
-    ux_mode: "redirect",
-    callback: (response) => {
-      if (!response.code) {
-        alert("Google 로그인 실패: 인증 코드를 받지 못했습니다.");
-        return;
-      }
-
-      fetch("http://210.101.236.158:5000/api/auth/google", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code: response.code }),
-      })
-        .then((res) => res.json())
-        .then((data) => {
-          if (data.success) {
-            alert("로그인 성공!");
-            localStorage.setItem("token", data.token);
-            localStorage.setItem("user", JSON.stringify(data.user));
-            router.push("/myprofile");
-          } else if (data.message === "회원가입이 필요합니다.") {
-            router.push({
-              path: "/register",
-              query: {
-                email: data.email,
-                name: data.name,
-                picture: data.picture,
-              },
-            });
-          } else {
-            alert("로그인 실패: " + data.message);
-          }
-        })
-        .catch((error) => {
-          console.error("Google 로그인 요청 실패:", error);
-          errorMessage.value = "Google 로그인 요청 실패!";
-        });
-    },
-  });
-
-  client.requestCode();
+  window.location.href = url;
 };
 </script>
 
 <style scoped>
-/* 전체 배경 및 중앙 정렬 */
 .login-wrapper {
   display: flex;
   justify-content: center;
@@ -117,7 +39,6 @@ const handleGoogleLogin = () => {
   padding: 0 20px;
 }
 
-/* 카드 스타일 */
 .login-card {
   background: white;
   padding: 40px 50px;
@@ -128,14 +49,12 @@ const handleGoogleLogin = () => {
   max-width: 400px;
 }
 
-/* 제목 글씨 크게 */
 .title {
   font-size: 36px;
   font-weight: 700;
   margin-bottom: 24px;
 }
 
-/* Google 로그인 버튼 */
 .google-btn {
   display: inline-flex;
   align-items: center;
@@ -161,12 +80,5 @@ const handleGoogleLogin = () => {
 .google-icon {
   width: 20px;
   height: 20px;
-}
-
-/* 에러 메시지 */
-.error {
-  color: red;
-  margin-top: 15px;
-  font-size: 14px;
 }
 </style>

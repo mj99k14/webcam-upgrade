@@ -10,6 +10,6 @@ export default defineConfig({
     },
   },
   server: {
-    port: 5173, // ✅ 포트 번호 설정
+    port: 5173, // ✅ 프론트 개발 서버 포트
   },
 });
