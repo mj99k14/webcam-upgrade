@@ -12,6 +12,8 @@
       <h4>📊 자세 분석 요약</h4>
       <p><strong>평균 목 각도:</strong> {{ averageNeckAngle }}°</p>
       <p><strong>거북목 비율:</strong> {{ turtleNeckPercentage }}%</p>
+      <p><strong>평균 어깨 기울기:</strong> {{ averageShoulderDiff }}px</p>
+      <p><strong>어깨 불균형 비율:</strong> {{ shoulderUnevenPercentage }}%</p>
     </div>
   </div>
 </template>
@@ -53,6 +55,16 @@ export default {
       const total = this.photos.length;
       const turtleNeckCount = this.photos.filter(p => p.neck_angle && p.neck_angle >= 135).length;
       return total ? ((turtleNeckCount / total) * 100).toFixed(2) : 0;
+    },
+    averageShoulderDiff() {
+      const diffs = this.photos.map(p => parseFloat(p.shoulder_diff)).filter(diff => !isNaN(diff));
+      const total = diffs.reduce((sum, val) => sum + val, 0);
+      return diffs.length ? (total / diffs.length).toFixed(2) : 0;
+    },
+    shoulderUnevenPercentage() {
+      const uneven = this.photos.filter(p => parseFloat(p.shoulder_diff) >= 10).length;
+      const total = this.photos.length;
+      return total ? ((uneven / total) * 100).toFixed(2) : 0;
     }
   }
 };
@@ -77,7 +89,7 @@ export default {
   border-top: 1px solid #ccc;
 }
 
-/* 추가된 분석 영역 */
+/* 📊 분석 요약 스타일 */
 .posture-summary {
   margin-top: 20px;
   padding-top: 12px;
