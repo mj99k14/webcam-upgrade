@@ -17,6 +17,7 @@
     <div v-if="selectedPhoto" class="preview-block" @click="$emit('photo-click', selectedPhoto)">
       <h3>선택한 사진</h3>
       <img :src="`http://210.101.236.158:5000${selectedPhoto.photo_url}`" alt="선택한 사진" class="selected-photo" />
+      <p class="shoulder-status">📐 어깨 상태: {{ selectedPhoto.shoulder_status || '정보 없음' }}</p>
     </div>
 
     <!-- 🟢 가장 좋은 자세 목록 -->
@@ -26,13 +27,14 @@
         <button class="delete-all-btn" @click="deleteAll('best')">🗑 전체 삭제</button>
       </div>
       <div class="scroll-block">
-        <div v-for="photo in bestPhotos" :key="photo.id">
+        <div v-for="photo in bestPhotos" :key="photo.id" class="photo-entry">
           <PhotoItem
             :photo="photo"
             :formatTime="formatTime"
             @photo-click="$emit('showPhoto', photo)"
             @deletePhoto="$emit('deletePhoto', photo.id)"
           />
+          <p class="shoulder-status-small">📐 {{ photo.shoulder_status || '어깨 정보 없음' }}</p>
         </div>
       </div>
     </div>
@@ -44,13 +46,14 @@
         <button class="delete-all-btn" @click="deleteAll('worst')">🗑 전체 삭제</button>
       </div>
       <div class="scroll-block">
-        <div v-for="photo in worstPhotos" :key="photo.id">
+        <div v-for="photo in worstPhotos" :key="photo.id" class="photo-entry">
           <PhotoItem
             :photo="photo"
             :formatTime="formatTime"
             @photo-click="$emit('showPhoto', photo)"
             @deletePhoto="$emit('deletePhoto', photo.id)"
           />
+          <p class="shoulder-status-small">📐 {{ photo.shoulder_status || '어깨 정보 없음' }}</p>
         </div>
       </div>
     </div>
@@ -117,6 +120,18 @@ export default {
   border-radius: 12px;
   border: 1px solid #ccc;
 }
+.shoulder-status {
+  margin-top: 8px;
+  font-weight: bold;
+  color: #007BFF;
+}
+.shoulder-status-small {
+  font-size: 14px;
+  color: #555;
+  margin-top: 4px;
+  text-align: left;
+  padding-left: 8px;
+}
 
 .section {
   margin-top: 30px;
@@ -136,6 +151,10 @@ export default {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 8px;
+}
+
+.photo-entry {
+  margin-bottom: 12px;
 }
 
 .delete-all-btn {

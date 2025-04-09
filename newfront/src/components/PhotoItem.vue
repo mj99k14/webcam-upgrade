@@ -3,7 +3,8 @@
     <img :src="photoUrl" alt="사진" />
     <div class="photo-info">
       <strong>{{ formattedDateTime }}</strong>
-      <p class="neck-angle">거북목 각도: {{ formattedNeckAngle }}°</p>
+      <p class="neck-angle">📏 목 각도: {{ formattedNeckAngle }}°</p>
+      <p class="shoulder-status">📐 어깨 상태: {{ photo.shoulder_status || '정보 없음' }}</p>
     </div>
     <button class="delete-btn" @click.stop="$emit('deletePhoto', photo.id)">삭제</button>
   </div>
@@ -59,9 +60,10 @@ export default {
   flex-grow: 1;
 }
 
-.neck-angle {
+.neck-angle,
+.shoulder-status {
   font-size: 13px;
-  color: #888;
+  color: #555;
   margin-top: 2px;
 }
 
