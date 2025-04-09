@@ -201,27 +201,31 @@ export default {
       camera?.stop?.();
       pose?.close?.();
 
+      // 📛 데이터 없음 방어 처리
       if (this.neckAngles.length === 0 || this.capturedFrames.length === 0) {
         alert("저장할 사진이 없습니다.");
         this.resetMeasurementState();
         return;
       }
 
+      // 📏 평균/최대 목 각도 계산
       const avg = this.neckAngles.reduce((a, b) => a + b, 0) / this.neckAngles.length;
       const max = Math.max(...this.neckAngles);
       this.averageNeck = avg;
       this.maxNeck = max;
 
+      // 👤 사용자 정보 확인
       const user = JSON.parse(localStorage.getItem("user"));
       const userId = user?.user_id;
       if (!userId) return alert("사용자 정보 없음");
 
+      // 📸 가장 좋은/나쁜 프레임 구하기
       const worst = this.capturedFrames.reduce((max, f) => (f.angle > max.angle ? f : max), this.capturedFrames[0]);
       const best = this.capturedFrames.reduce((min, f) => (f.angle < min.angle ? f : min), this.capturedFrames[0]);
-
       this.bestNeckAngle = best.angle.toFixed(1);
       this.worstNeckAngle = worst.angle.toFixed(1);
 
+      // ☁️ 사진 서버 업로드
       let bestResult = null;
       let worstResult = null;
 
@@ -248,6 +252,12 @@ export default {
         this.worstPhotoId = worstResult?.id || null;
       }
 
+      // 🕒 measured_at: 한국 시간으로 문자열 전송 (YYYY-MM-DDTHH:mm:ss)
+      const now = new Date();
+      const koreaTime = new Date(now.getTime() + 9 * 60 * 60 * 1000);
+      const measuredAt = koreaTime.toLocaleString('sv-SE').replace(' ', 'T'); // 예: 2025-04-10T09:45:23
+
+      // 📝 서버에 측정 결과 저장
       try {
         await fetch("http://210.101.236.158:5000/api/posture/save", {
           method: "POST",
@@ -262,6 +272,7 @@ export default {
             feedback: max > 135 ? "거북목 의심" : "정상",
             shoulder_status: this.shoulderStatus,
             shoulder_diff: parseFloat(this.shoulderDiff),
+            measured_at: measuredAt, // ✅ 최종 날짜 문자열 전달
           }),
         });
       } catch (err) {
@@ -272,6 +283,8 @@ export default {
       this.isCapturing = false;
       this.measurementFinished = true;
     },
+
+ 
     async uploadToServer(dataUrl, type, neckAngle) {
       try {
         const byteString = atob(dataUrl.split(',')[1]);
@@ -287,7 +300,6 @@ export default {
         formData.append('photo', blob, `${type}_photo.jpg`);
         formData.append('neck_angle', neckAngle.toFixed(2));
         formData.append('type', type);
-        // ✅ 어깨 정보도 추가
         formData.append('shoulder_status', this.shoulderStatus || '');
         formData.append('shoulder_diff', this.shoulderDiff || 0);
 
@@ -297,6 +309,9 @@ export default {
         });
 
         const data = await res.json();
+
+        console.log(`[📷 ${type} 업로드 응답]:`, data); // ✅ 추가된 디버깅 로그
+
         if (data.success) {
           this.$emit('handlePhotoUploaded');
           return {
@@ -313,6 +328,8 @@ export default {
         return null;
       }
     },
+
+
     restartMeasurement() {
       this.resetMeasurementState();
       setTimeout(() => this.startCamera(), 100);

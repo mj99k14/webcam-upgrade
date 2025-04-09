@@ -47,7 +47,7 @@ import { useRouter } from "vue-router";
 import UserInfo from '../components/UserInfo.vue';
 import PhotoList from '../components/PhotoList.vue';
 import MainPhotos from '../components/Mainphotos.vue';
-import SummaryStats from '../components/SummaryStats.vue';
+import SummaryStats from '../components/summary/SummaryStats.vue';
 import UserSummary from '../components/UserSummary.vue';
 import PhotoModal from '../components/PhotoModal.vue';
 import MiniCalendar from '../components/MiniCalendar.vue';
@@ -83,38 +83,46 @@ export default {
         status: (p.average_neck_angle || p.neck_angle) >= 135 ? 'bad' : 'good'
       }));
     });
+    const toKoreanDate = (datetime) => {
+  const date = new Date(datetime);
+  date.setHours(date.getHours() + 9); // 한국 시간 보정
+  return date.toISOString().split("T")[0];
+};
 
+// ✅ 선택된 날짜 변경 감지
     watch(selectedDate, (newDate) => {
       if (!newDate) return;
+
       const photosForDate = photos.value.filter(photo => {
-        const dateOnly = new Date(photo.uploaded_at).toISOString().split("T")[0];
-        return dateOnly === newDate;
+        return toKoreanDate(photo.uploaded_at) === newDate;
       });
+
       const best = photosForDate.find(p => p.type === 'best');
       const worst = photosForDate.find(p => p.type === 'worst');
       selectedPhoto.value = best || worst || photosForDate[0] || null;
     });
 
+    // ✅ 필터링된 사진 목록 (한국 시간 기준으로 날짜 비교)
     const filteredPhotos = computed(() => {
       let list = photos.value;
       if (selectedDate.value) {
         list = list.filter(photo => {
-          const dateOnly = new Date(photo.uploaded_at).toISOString().split("T")[0];
-          return dateOnly === selectedDate.value;
+          return toKoreanDate(photo.uploaded_at) === selectedDate.value;
         });
       }
       return list.sort((a, b) => new Date(b.uploaded_at) - new Date(a.uploaded_at));
     });
 
+    // ✅ 한국 시간 기준의 시간 형식 포맷
     const formatTime = (datetime) => {
       const date = new Date(datetime);
+      date.setHours(date.getHours() + 9); // 한국 시간 보정
       const month = (date.getMonth() + 1).toString().padStart(2, '0');
       const day = date.getDate().toString().padStart(2, '0');
       const hours = date.getHours().toString().padStart(2, '0');
       const minutes = date.getMinutes().toString().padStart(2, '0');
       return `${month}월 ${day}일 ${hours}:${minutes}`;
     };
-
     const fetchUser = async () => {
       try {
         const token = localStorage.getItem("token");
@@ -139,17 +147,34 @@ export default {
         const res = await axios.get(`http://210.101.236.158:5000/api/photos?user_id=${user.value.id}`);
         photos.value = res.data;
 
-        // 최신 사진을 기준으로 정렬
-        const sorted = [...photos.value].sort((a, b) => new Date(b.uploaded_at) - new Date(a.uploaded_at));
-        const latestDate = sorted[0]?.uploaded_at?.split("T")[0];
+        const getKoreanDate = (datetime) => {
+          const d = new Date(datetime);
+          d.setHours(d.getHours() + 9); // 한국 시간 보정
+          return d.toISOString().split("T")[0];
+        };
 
-        if (latestDate) {
-          selectedDate.value = latestDate;
-          const latestPhotos = sorted.filter(p => p.uploaded_at.split('T')[0] === latestDate);
-          selectedPhoto.value = latestPhotos[0] || null;
+        const today = getKoreanDate(new Date());
+
+        const todayPhotos = photos.value.filter(p => getKoreanDate(p.uploaded_at) === today);
+
+        if (todayPhotos.length > 0) {
+          selectedDate.value = today;
+          selectedPhoto.value =
+            todayPhotos.find(p => p.type === 'best') ||
+            todayPhotos.find(p => p.type === 'worst') ||
+            todayPhotos[0] || null;
+        } else {
+          // 최신 사진 기준
+          const sorted = [...photos.value].sort((a, b) => new Date(b.uploaded_at) - new Date(a.uploaded_at));
+          const latestDate = getKoreanDate(sorted[0]?.uploaded_at);
+
+          if (latestDate) {
+            selectedDate.value = latestDate;
+            const latestPhotos = sorted.filter(p => getKoreanDate(p.uploaded_at) === latestDate);
+            selectedPhoto.value = latestPhotos[0] || null;
+          }
         }
 
-        // 가장 좋은 자세 / 나쁜 자세 다시 찾기
         bestPhoto.value = photos.value.find(p => p.type === 'best') || null;
         worstPhoto.value = photos.value.find(p => p.type === 'worst') || null;
 

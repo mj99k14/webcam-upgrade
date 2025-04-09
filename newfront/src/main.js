@@ -1,9 +1,11 @@
-import { createApp } from "vue"; //vue 앱생성 함수 불러오기
-import App from "./App.vue";
-import router from "./router"; // Vue Router 가져오기
+import { createApp } from 'vue'
+import App from './App.vue'
+import router from './router'
 
-const app = createApp(App);
+// 여기에 추가
+import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js'
+ChartJS.register(ArcElement, Tooltip, Legend)
 
-app.use(router); // Vue 앱에 Router 추가
-
-app.mount("#app");
+const app = createApp(App)
+app.use(router)
+app.mount('#app')
