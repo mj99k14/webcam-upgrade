@@ -2,15 +2,16 @@
   <div class="main">
     <!-- 결과 사진 -->
     <div class="result-photo-group-row" v-if="measurementFinished && (bestFrameUrl || worstFrameUrl)">
-      <div v-if="bestFrameUrl" class="photo-block" @click="openModal(bestFrameUrl)">
-        <p>✅ 가장 좋은 자세 ({{ bestNeckAngle }}°)</p>
-        <img :src="bestFrameUrl" alt="좋은 자세" />
-      </div>
-      <div v-if="worstFrameUrl" class="photo-block" @click="openModal(worstFrameUrl)">
-        <p>⚠️ 가장 나쁜 자세 ({{ worstNeckAngle }}°)</p>
-        <img :src="worstFrameUrl" alt="나쁜 자세" />
-      </div>
+    <div v-if="bestFrameUrl" class="photo-block" @click="openModal(bestFrameUrl)">
+      <p>✅ 가장 좋은 자세 ({{ bestNeckAngle }}°)</p>
+      <img :src="bestFrameUrl" alt="좋은 자세" />
     </div>
+    <div v-if="worstFrameUrl" class="photo-block" @click="openModal(worstFrameUrl)">
+      <p>⚠️ 가장 나쁜 자세 ({{ worstNeckAngle }}°)</p>
+      <img :src="worstFrameUrl" alt="나쁜 자세" />
+    </div>
+  </div>
+
 
     <PhotoModal v-if="modalUrl" :photoUrl="modalUrl" @close="modalUrl = null" />
 
@@ -32,26 +33,30 @@
       <p class="timer-text">⏱ 측정 시간: {{ formattedTime }}</p>
     </div>
 
+    <!-- ✅ 리팩토링된 결과 요약 박스 -->
     <div v-if="measurementFinished" class="result-info">
       <div class="stat-item">
-        <span class="label">🖍️ 평균 목 각도:</span>
-        <span class="value">{{ averageNeck.toFixed(2) }}°</span>
+        <span class="label">📏 평균 목 각도:</span>
+        <span class="value blue">{{ averageNeck.toFixed(2) }}°</span>
       </div>
       <div class="stat-item">
-        <span class="label">📏 최대 목 각도:</span>
-        <span class="value">{{ maxNeck.toFixed(2) }}°</span>
+        <span class="label">📐 최대 목 각도:</span>
+        <span class="value blue">{{ maxNeck.toFixed(2) }}°</span>
       </div>
       <div class="stat-item">
-        <span class="label">📐 어깨 상태:</span>
-        <span class="value">{{ shoulderStatus }} (차이: {{ shoulderDiff }}px)</span>
+        <span class="label">↕️ 어깨 상태:</span>
+        <span class="value blue">{{ shoulderStatus }} ({{ shoulderDiff }}px)</span>
       </div>
-      <div class="stat-item message">
+      <div class="message">
         ✅ 측정 결과가 저장되었습니다.
       </div>
-      <button @click="restartMeasurement" class="restart-btn">🔁 다시 측정하기</button>
+      <div class="button-center">
+      <button class="restart-btn" @click="restartMeasurement">🔁 다시 측정하기</button>
+      </div>
     </div>
   </div>
 </template>
+
 
 <script>
 import PhotoModal from './PhotoModal.vue';
@@ -342,37 +347,195 @@ export default {
 </script>
 
 <style scoped>
-.main { padding: 20px; text-align: center; }
-.video-canvas { position: relative; width: 640px; height: 480px; margin: 0 auto; }
-video, canvas {
-  position: absolute; top: 0; left: 0;
-  width: 100%; height: 100%;
-  border-radius: 12px; object-fit: cover;
+/* ✅ 전체 레이아웃 */
+.main {
+  padding: 40px 20px;
+  background-color: #fafafa;
+  font-family: 'Segoe UI', sans-serif;
+  text-align: center;
 }
-.title-group { margin-bottom: 20px; }
-.button-group { display: flex; justify-content: center; gap: 10px; margin-top: 10px; }
-.start-btn, .stop-btn, .complete-btn, .restart-btn {
-  padding: 12px 20px; font-weight: bold;
-  border-radius: 10px; border: none; cursor: pointer; color: white;
+
+/* ✅ 비디오 + 캔버스 */
+.video-canvas {
+  position: relative;
+  width: 100%;
+  max-width: 640px;
+  height: 480px;
+  margin: 0 auto 24px;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+  background-color: #000;
 }
-.start-btn { background-color: #1976d2; }
-.stop-btn { background-color: #f44336; }
-.complete-btn, .restart-btn { background-color: #4caf50; }
-.result-info { margin-top: 20px; font-size: 20px; }
-.stat-item { margin-bottom: 10px; }
-.message { color: green; font-weight: bold; }
+video,
+canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* ✅ 제목 영역 */
+.title-group {
+  margin-bottom: 24px;
+}
+
+/* ✅ 버튼 공통 */
+button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-weight: bold;
+  font-size: 16px;
+  padding: 12px 24px;
+  border-radius: 10px;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+}
+/* ✅ 다시 측정하기 버튼 감싸는 div */
+.button-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 20px;
+}
+
+.start-btn {
+  background-color: #1976d2;
+  color: white;
+  border-color: #0d47a1;
+}
+.start-btn:hover {
+  background-color: #1565c0;
+  transform: scale(1.03);
+}
+
+.stop-btn {
+  background-color: #e53935;
+  color: white;
+  border-color: #b71c1c;
+}
+.stop-btn:hover {
+  background-color: #c62828;
+  transform: scale(1.03);
+}
+
+.complete-btn {
+  background-color: #43a047;
+  color: white;
+  border-color: #2e7d32;
+}
+.complete-btn:hover {
+  background-color: #2e7d32;
+  transform: scale(1.03);
+}
+
+.restart-btn {
+  background-color: #43a047;
+  color: white;
+  border-color: #2e7d32;
+  padding: 14px 36px;
+  min-width: 200px;
+}
+.restart-btn:hover {
+  background-color: #2e7d32;
+  transform: scale(1.03);
+}
+
+.button-group {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 16px;
+  margin: 20px 0;
+}
+
+/* ✅ 측정 결과 요약 */
+.result-info {
+  margin-top: 40px;
+  background: #ffffff;
+  padding: 28px 24px;
+  border-radius: 16px;
+  max-width: 520px;
+  margin-left: auto;
+  margin-right: auto;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.07);
+  border: 1px solid #e0e0e0;
+}
+.result-info h3 {
+  margin-top: 0;
+  font-size: 20px;
+  color: #333;
+  margin-bottom: 16px;
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 8px;
+}
+
+.stat-item {
+  margin-bottom: 16px;
+  font-size: 17px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.label {
+  font-weight: bold;
+  color: #333;
+  min-width: 160px;
+}
+.value {
+  font-size: 18px;
+  font-weight: 600;
+}
+.value.blue {
+  color: #1565c0;
+}
+
+/* ✅ 메시지 + 버튼 */
+.message-wrapper {
+  margin-top: 24px;
+  text-align: center;
+}
+.message {
+  background: #e8f5e9;
+  padding: 10px 16px;
+  border-radius: 8px;
+  color: #2e7d32;
+  font-weight: bold;
+  display: inline-flex; /* 아이콘+텍스트를 수평 정렬 */
+  align-items: center;
+  gap: 8px; /* 아이콘과 텍스트 간 간격 */
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
+  margin: 0 auto 16px auto; 
+}
+
+/* ✅ 결과 사진 */
 .result-photo-group-row {
   display: flex;
   justify-content: center;
-  gap: 30px;
-  margin-bottom: 20px;
+  align-items: flex-start;
+  flex-wrap: nowrap;       /* 줄바꿈 금지 */
+  gap: 40px;
+  overflow-x: auto;        /* 넘치면 스크롤 */
+  padding-bottom: 10px;
 }
+
 .photo-block {
+  width: 260px;            /* 조금 더 작게 */
+  flex-shrink: 0;          /* 작아지지 않게 */
   text-align: center;
 }
+
 .photo-block img {
-  width: 300px;
-  border-radius: 12px;
+  width: 100%;
+  border-radius: 14px;
   border: 3px solid #ccc;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
+
 </style>
