@@ -1,17 +1,17 @@
 <template>
   <div class="user-summary">
-    <h3>📝 오늘의 요조</h3>
+    <h3>📝 오늘의 건강 리포트</h3>
     <hr />
     <p>📸 <strong>최근 업로드:</strong> {{ latestUpload }}</p>
     <p>📈 <strong>이번 주 업로드:</strong> {{ weeklyCount }}회</p>
     <p>👍 <strong>자세 피드백:</strong> {{ feedback }}</p>
-    <p>🕒 <strong>다음 치정 추천:</strong> {{ nextCheck }}</p>
+    <p>🕒 <strong>다음 측정 추천:</strong> {{ nextCheck }}</p>
 
     <!-- 📊 자세 분석 요조 -->
     <div class="posture-summary">
-      <h4>📊 자세 분석 요조</h4>
+      <h4>📊 목 & 어깨 분석 결과</h4>
       <p><strong>평균 목 각도:</strong> {{ averageNeckAngle }}°</p>
-      <p><strong>거부목 비율:</strong> {{ turtleNeckPercentage }}%</p>
+      <p><strong>거북목 비율:</strong> {{ turtleNeckPercentage }}%</p>
       <p><strong>평균 어깨 기울기:</strong> {{ averageShoulderDiff }}px</p>
       <p><strong>어깨 불균형 비율:</strong> {{ shoulderUnevenPercentage }}%</p>
     </div>
