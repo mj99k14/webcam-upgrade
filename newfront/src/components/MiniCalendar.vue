@@ -7,22 +7,35 @@
     </div>
 
     <div class="calendar-grid">
-      <div class="day-label" v-for="label in ['일','월','화','수','목','금','토']" :key="label">
+      <div
+        class="day-label"
+        v-for="label in ['일','월','화','수','목','금','토']"
+        :key="label"
+      >
         {{ label }}
       </div>
 
       <div
         v-for="(cell, index) in calendarCells"
         :key="index"
-        class="day-cell"
-        :class="[
-          cell.isCurrentMonth ? (cell.status === 'bad' ? 'red' : cell.status === 'good' ? 'green' : '') : 'disabled',
-          getDayClass(index),
-          cell.isToday ? 'today' : ''
-        ]"
-        :title="cell.status ? `${cell.date} - ${cell.status === 'bad' ? '거북목' : '정상'}` : ''"
+        class="day-cell-wrapper"
       >
-        {{ cell.day }}
+        <div
+          class="day-cell"
+          :class="[
+            cell.isCurrentMonth
+              ? (cell.status === 'bad'
+                  ? 'red'
+                  : cell.status === 'good'
+                  ? 'green'
+                  : '')
+              : 'disabled',
+            getDayClass(index)
+          ]"
+          :title="cell.status ? `${cell.date} - ${cell.status === 'bad' ? '거북목' : '정상'}` : ''"
+        >
+          <span :class="{ today: cell.isToday }">{{ cell.day }}</span>
+        </div>
       </div>
     </div>
   </div>
@@ -31,18 +44,15 @@
 <script>
 export default {
   name: 'MiniCalendar',
-  props: ['stats'], // [{ date: '2025-04-06', status: 'bad' }, ...]
+  props: {
+    stats: Array,
+    today: String // ❌ props 받아서 정확한 오늘 날짜 활용
+  },
   data() {
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = String(now.getMonth() + 1).padStart(2, '0');
-    const date = String(now.getDate()).padStart(2, '0');
-    const todayDate = `${year}-${month}-${date}`; // ✅ 정확한 한국 기준 날짜
-
+    const now = this.getKoreaDate();
     return {
       year: now.getFullYear(),
       month: now.getMonth(),
-      todayDate
     };
   },
   computed: {
@@ -61,18 +71,18 @@ export default {
 
       const cells = [];
 
-      // 앞 빈 칸 (이전 달 날짜)
+      // 이전 달
       for (let i = startDayOfWeek - 1; i >= 0; i--) {
         const d = new Date(this.year, this.month - 1, prevMonthDays - i);
         cells.push({
           day: d.getDate(),
           date: this.formatDate(d),
           isCurrentMonth: false,
-          isToday: false
+          isToday: false,
         });
       }
 
-      // 현재 달 날짜
+      // 이보다 달
       for (let i = 1; i <= daysInMonth; i++) {
         const d = new Date(this.year, this.month, i);
         const iso = this.formatDate(d);
@@ -80,19 +90,19 @@ export default {
           day: i,
           date: iso,
           isCurrentMonth: true,
-          isToday: iso === this.todayDate,
-          status: this.dateStatusMap[iso] || null
+          isToday: iso === this.today,
+          status: this.dateStatusMap[iso] || null,
         });
       }
 
-      // 뒷 빈 칸 (다음 달 날짜)
+      // 다음 달
       while (cells.length % 7 !== 0) {
         const d = new Date(this.year, this.month + 1, cells.length - daysInMonth - startDayOfWeek + 1);
         cells.push({
           day: d.getDate(),
           date: this.formatDate(d),
           isCurrentMonth: false,
-          isToday: false
+          isToday: false,
         });
       }
 
@@ -121,10 +131,19 @@ export default {
       return dayOfWeek === 0 || dayOfWeek === 6 ? 'weekend' : '';
     },
     formatDate(date) {
-      const y = date.getFullYear();
-      const m = String(date.getMonth() + 1).padStart(2, '0');
-      const d = String(date.getDate()).padStart(2, '0');
+      const utc = date.getTime();
+      const koreaOffset = 9 * 60 * 60 * 1000;
+      const koreanDate = new Date(utc + koreaOffset);
+
+      const y = koreanDate.getFullYear();
+      const m = String(koreanDate.getMonth() + 1).padStart(2, '0');
+      const d = String(koreanDate.getDate()).padStart(2, '0');
       return `${y}-${m}-${d}`;
+    },
+    getKoreaDate() {
+      const now = new Date();
+      const offset = now.getTimezoneOffset() * 60000;
+      return new Date(now.getTime() - offset + 9 * 60 * 60 * 1000);
     }
   }
 };
@@ -168,6 +187,10 @@ export default {
   font-size: 13px;
 }
 
+.day-cell-wrapper {
+  position: relative;
+}
+
 .day-cell {
   height: 42px;
   border-radius: 8px;
@@ -176,6 +199,7 @@ export default {
   font-size: 13px;
   font-weight: bold;
   background-color: #fff;
+  position: relative;
 }
 
 .red {
@@ -196,9 +220,14 @@ export default {
   font-style: italic;
 }
 
-/* ✅ 오늘 날짜 강조 */
 .today {
+  display: inline-block;
+  padding: 2px 6px;
   border: 2px solid #2563eb;
+  border-radius: 50%;
   box-shadow: 0 0 4px #3b82f6;
+  background-color: #fff;
+  z-index: 2;
+  position: relative;
 }
 </style>

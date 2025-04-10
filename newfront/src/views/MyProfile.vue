@@ -78,16 +78,17 @@ export default {
     };
 
     const calendarStats = computed(() => {
-      return photos.value.map(p => ({
-        date: (p.measured_at || p.uploaded_at).split('T')[0],
-        status: (p.average_neck_angle || p.neck_angle) >= 135 ? 'bad' : 'good'
-      }));
-    });
+    return photos.value.map(p => ({
+      date: toKoreanDate(p.measured_at || p.uploaded_at),  // 🔥 이렇게만 바꿔줘!
+      status: (p.average_neck_angle || p.neck_angle) >= 135 ? 'bad' : 'good'
+    }));
+  });
+
     const toKoreanDate = (datetime) => {
-  const date = new Date(datetime);
-  date.setHours(date.getHours() + 9); // 한국 시간 보정
-  return date.toISOString().split("T")[0];
-};
+    const date = new Date(datetime);
+    date.setHours(date.getHours() + 9); // 한국 시간 보정
+    return date.toISOString().split("T")[0];
+  };
 
 // ✅ 선택된 날짜 변경 감지
     watch(selectedDate, (newDate) => {
@@ -142,46 +143,47 @@ export default {
     };
 
     const fetchPhotos = async () => {
-      if (!user.value.id) return;
-      try {
-        const res = await axios.get(`http://210.101.236.158:5000/api/photos?user_id=${user.value.id}`);
-        photos.value = res.data;
+    if (!user.value.id) return;
+    try {
+      const res = await axios.get(`http://210.101.236.158:5000/api/photos?user_id=${user.value.id}`);
 
-        const getKoreanDate = (datetime) => {
-          const d = new Date(datetime);
-          d.setHours(d.getHours() + 9); // 한국 시간 보정
-          return d.toISOString().split("T")[0];
-        };
+      // ✅ 핵심: 반응형 트리거를 위해 새 배열로 할당
+      photos.value = [...res.data];
 
-        const today = getKoreanDate(new Date());
+    const getKoreanDate = (datetime) => {
+        const d = new Date(datetime);
+        d.setHours(d.getHours() + 9);
+        return d.toISOString().split("T")[0];
+      };
 
-        const todayPhotos = photos.value.filter(p => getKoreanDate(p.uploaded_at) === today);
+      const today = getKoreanDate(new Date());
+      const todayPhotos = photos.value.filter(p => getKoreanDate(p.uploaded_at) === today);
 
-        if (todayPhotos.length > 0) {
-          selectedDate.value = today;
-          selectedPhoto.value =
-            todayPhotos.find(p => p.type === 'best') ||
-            todayPhotos.find(p => p.type === 'worst') ||
-            todayPhotos[0] || null;
-        } else {
-          // 최신 사진 기준
-          const sorted = [...photos.value].sort((a, b) => new Date(b.uploaded_at) - new Date(a.uploaded_at));
-          const latestDate = getKoreanDate(sorted[0]?.uploaded_at);
+      if (todayPhotos.length > 0) {
+        selectedDate.value = today;
+        selectedPhoto.value =
+          todayPhotos.find(p => p.type === 'best') ||
+          todayPhotos.find(p => p.type === 'worst') ||
+          todayPhotos[0] || null;
+      } else {
+        const sorted = [...photos.value].sort((a, b) => new Date(b.uploaded_at) - new Date(a.uploaded_at));
+        const latestDate = getKoreanDate(sorted[0]?.uploaded_at);
 
-          if (latestDate) {
-            selectedDate.value = latestDate;
-            const latestPhotos = sorted.filter(p => getKoreanDate(p.uploaded_at) === latestDate);
-            selectedPhoto.value = latestPhotos[0] || null;
-          }
+        if (latestDate) {
+          selectedDate.value = latestDate;
+          const latestPhotos = sorted.filter(p => getKoreanDate(p.uploaded_at) === latestDate);
+          selectedPhoto.value = latestPhotos[0] || null;
         }
-
-        bestPhoto.value = photos.value.find(p => p.type === 'best') || null;
-        worstPhoto.value = photos.value.find(p => p.type === 'worst') || null;
-
-      } catch (err) {
-        console.error("🚨 사진 목록 오류:", err);
       }
-    };
+
+      bestPhoto.value = photos.value.find(p => p.type === 'best') || null;
+      worstPhoto.value = photos.value.find(p => p.type === 'worst') || null;
+
+    } catch (err) {
+      console.error("🚨 사진 목록 오류:", err);
+    }
+  };
+
 
     const handlePhotoUploaded = async () => {
       await fetchPhotos(); // 사진 업로드 후 목록 갱신
@@ -244,7 +246,14 @@ export default {
       cameraActive.value = true;
     };
 
-    onMounted(fetchUser);
+    onMounted(async () => {
+      await fetchUser();
+
+      // ✅ 오늘 날짜를 selectedDate에 설정
+      const today = toKoreanDate(new Date());
+      selectedDate.value = today;
+    });
+
 
     return {
       user,
@@ -351,4 +360,6 @@ export default {
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
+
+
 </style>

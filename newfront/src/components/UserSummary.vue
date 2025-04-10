@@ -1,17 +1,17 @@
 <template>
   <div class="user-summary">
-    <h3>📝 오늘의 요약</h3>
+    <h3>📝 오늘의 요조</h3>
     <hr />
     <p>📸 <strong>최근 업로드:</strong> {{ latestUpload }}</p>
     <p>📈 <strong>이번 주 업로드:</strong> {{ weeklyCount }}회</p>
     <p>👍 <strong>자세 피드백:</strong> {{ feedback }}</p>
-    <p>🕒 <strong>다음 측정 추천:</strong> {{ nextCheck }}</p>
+    <p>🕒 <strong>다음 치정 추천:</strong> {{ nextCheck }}</p>
 
-    <!-- 📊 자세 분석 요약 -->
+    <!-- 📊 자세 분석 요조 -->
     <div class="posture-summary">
-      <h4>📊 자세 분석 요약</h4>
+      <h4>📊 자세 분석 요조</h4>
       <p><strong>평균 목 각도:</strong> {{ averageNeckAngle }}°</p>
-      <p><strong>거북목 비율:</strong> {{ turtleNeckPercentage }}%</p>
+      <p><strong>거부목 비율:</strong> {{ turtleNeckPercentage }}%</p>
       <p><strong>평균 어깨 기울기:</strong> {{ averageShoulderDiff }}px</p>
       <p><strong>어깨 불균형 비율:</strong> {{ shoulderUnevenPercentage }}%</p>
     </div>
@@ -27,9 +27,12 @@ export default {
     }
   },
   computed: {
+    sortedPhotos() {
+      return [...this.photos].sort((a, b) => new Date(b.uploaded_at) - new Date(a.uploaded_at));
+    },
     latestUpload() {
-      if (!this.photos.length) return '없음';
-      const latest = new Date(this.photos[0].uploaded_at);
+      if (!this.sortedPhotos.length) return '없음';
+      const latest = new Date(this.sortedPhotos[0].uploaded_at);
       return latest.toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' });
     },
     weeklyCount() {
@@ -41,8 +44,8 @@ export default {
       return this.photos.length > 0 ? '정상 자세' : '측정 필요';
     },
     nextCheck() {
-      if (!this.photos.length) return '측정 필요';
-      const last = new Date(this.photos[0].uploaded_at);
+      if (!this.sortedPhotos.length) return '측정 필요';
+      const last = new Date(this.sortedPhotos[0].uploaded_at);
       last.setDate(last.getDate() + 3);
       return last.toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' });
     },
@@ -89,7 +92,6 @@ export default {
   border-top: 1px solid #ccc;
 }
 
-/* 📊 분석 요약 스타일 */
 .posture-summary {
   margin-top: 20px;
   padding-top: 12px;
