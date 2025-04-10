@@ -8,7 +8,6 @@
         @deleteAccount="deleteAccount"
       />
       <UserSummary :photos="photos" />
-    
     </div>
 
     <MainPhotos
@@ -73,63 +72,46 @@ export default {
     const bestPhoto = ref(null);
     const worstPhoto = ref(null);
 
-    const openModal = (url) => {
-      modalPhotoUrl.value = url;
-    };
-
-    const calendarStats = computed(() => {
-    return photos.value.map(p => ({
-      date: toKoreanDate(p.measured_at || p.uploaded_at),  // 🔥 이렇게만 바꿔줘!
-      status: (p.average_neck_angle || p.neck_angle) >= 135 ? 'bad' : 'good'
-    }));
-  });
+    const openModal = (url) => modalPhotoUrl.value = url;
 
     const toKoreanDate = (datetime) => {
-    const date = new Date(datetime);
-    date.setHours(date.getHours() + 9); // 한국 시간 보정
-    return date.toISOString().split("T")[0];
-  };
+      const date = new Date(datetime);
+      date.setHours(date.getHours() + 9);
+      return date.toISOString().split("T")[0];
+    };
 
-// ✅ 선택된 날짜 변경 감지
+    const calendarStats = computed(() =>
+      photos.value.map(p => ({
+        date: toKoreanDate(p.measured_at || p.uploaded_at),
+        status: (p.average_neck_angle || p.neck_angle) >= 135 ? 'bad' : 'good'
+      }))
+    );
+
     watch(selectedDate, (newDate) => {
       if (!newDate) return;
-
-      const photosForDate = photos.value.filter(photo => {
-        return toKoreanDate(photo.uploaded_at) === newDate;
-      });
-
-      const best = photosForDate.find(p => p.type === 'best');
-      const worst = photosForDate.find(p => p.type === 'worst');
-      selectedPhoto.value = best || worst || photosForDate[0] || null;
+      const photosForDate = photos.value.filter(p => toKoreanDate(p.uploaded_at) === newDate);
+      selectedPhoto.value = photosForDate.find(p => p.type === 'best') || photosForDate.find(p => p.type === 'worst') || photosForDate[0] || null;
     });
 
-    // ✅ 필터링된 사진 목록 (한국 시간 기준으로 날짜 비교)
     const filteredPhotos = computed(() => {
       let list = photos.value;
       if (selectedDate.value) {
-        list = list.filter(photo => {
-          return toKoreanDate(photo.uploaded_at) === selectedDate.value;
-        });
+        list = list.filter(p => toKoreanDate(p.uploaded_at) === selectedDate.value);
       }
       return list.sort((a, b) => new Date(b.uploaded_at) - new Date(a.uploaded_at));
     });
 
-    // ✅ 한국 시간 기준의 시간 형식 포맷
     const formatTime = (datetime) => {
       const date = new Date(datetime);
-      date.setHours(date.getHours() + 9); // 한국 시간 보정
-      const month = (date.getMonth() + 1).toString().padStart(2, '0');
-      const day = date.getDate().toString().padStart(2, '0');
-      const hours = date.getHours().toString().padStart(2, '0');
-      const minutes = date.getMinutes().toString().padStart(2, '0');
-      return `${month}월 ${day}일 ${hours}:${minutes}`;
+      date.setHours(date.getHours() + 9);
+      return `${(date.getMonth() + 1).toString().padStart(2, '0')}월 ${date.getDate().toString().padStart(2, '0')}일 ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
     };
+
     const fetchUser = async () => {
       try {
         const token = localStorage.getItem("token");
         if (!token) return;
-        const decodedToken = JSON.parse(atob(token.split(".")[1]));
-        const email = decodedToken.email;
+        const email = JSON.parse(atob(token.split(".")[1])).email;
         const res = await axios.get(`http://210.101.236.158:5000/api/user/me?email=${email}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -143,78 +125,52 @@ export default {
     };
 
     const fetchPhotos = async () => {
-    if (!user.value.id) return;
-    try {
-      const res = await axios.get(`http://210.101.236.158:5000/api/photos?user_id=${user.value.id}`);
+      if (!user.value.id) return;
+      try {
+        const res = await axios.get(`http://210.101.236.158:5000/api/photos?user_id=${user.value.id}`);
+        photos.value = [...res.data];
 
-      // ✅ 핵심: 반응형 트리거를 위해 새 배열로 할당
-      photos.value = [...res.data];
+        const today = toKoreanDate(new Date());
+        const todayPhotos = photos.value.filter(p => toKoreanDate(p.uploaded_at) === today);
 
-    const getKoreanDate = (datetime) => {
-        const d = new Date(datetime);
-        d.setHours(d.getHours() + 9);
-        return d.toISOString().split("T")[0];
-      };
-
-      const today = getKoreanDate(new Date());
-      const todayPhotos = photos.value.filter(p => getKoreanDate(p.uploaded_at) === today);
-
-      if (todayPhotos.length > 0) {
-        selectedDate.value = today;
-        selectedPhoto.value =
-          todayPhotos.find(p => p.type === 'best') ||
-          todayPhotos.find(p => p.type === 'worst') ||
-          todayPhotos[0] || null;
-      } else {
-        const sorted = [...photos.value].sort((a, b) => new Date(b.uploaded_at) - new Date(a.uploaded_at));
-        const latestDate = getKoreanDate(sorted[0]?.uploaded_at);
-
-        if (latestDate) {
-          selectedDate.value = latestDate;
-          const latestPhotos = sorted.filter(p => getKoreanDate(p.uploaded_at) === latestDate);
-          selectedPhoto.value = latestPhotos[0] || null;
+        if (todayPhotos.length > 0) {
+          selectedDate.value = today;
+          selectedPhoto.value = todayPhotos.find(p => p.type === 'best') || todayPhotos.find(p => p.type === 'worst') || todayPhotos[0] || null;
+        } else {
+          const sorted = [...photos.value].sort((a, b) => new Date(b.uploaded_at) - new Date(a.uploaded_at));
+          const latestDate = toKoreanDate(sorted[0]?.uploaded_at);
+          if (latestDate) {
+            selectedDate.value = latestDate;
+            const latestPhotos = sorted.filter(p => toKoreanDate(p.uploaded_at) === latestDate);
+            selectedPhoto.value = latestPhotos[0] || null;
+          }
         }
+
+        bestPhoto.value = photos.value.find(p => p.type === 'best') || null;
+        worstPhoto.value = photos.value.find(p => p.type === 'worst') || null;
+
+      } catch (err) {
+        console.error("🚨 사진 목록 오류:", err);
       }
-
-      bestPhoto.value = photos.value.find(p => p.type === 'best') || null;
-      worstPhoto.value = photos.value.find(p => p.type === 'worst') || null;
-
-    } catch (err) {
-      console.error("🚨 사진 목록 오류:", err);
-    }
-  };
-
+    };
 
     const handlePhotoUploaded = async () => {
-      await fetchPhotos(); // 사진 업로드 후 목록 갱신
+      await fetchPhotos();
     };
 
     const deletePhoto = async (id) => {
       try {
         const res = await axios.delete(`http://210.101.236.158:5000/api/photos/${id}`);
         if (res.data.success) {
-          alert("사진이 삭제되었습니다.");
-
-          // 삭제된 사진이 현재 best 또는 worst 라면 초기화
-          if (bestPhoto.value && bestPhoto.value.id === id) {
-            bestPhoto.value = null;
-          }
-          if (worstPhoto.value && worstPhoto.value.id === id) {
-            worstPhoto.value = null;
-          }
-
-          if (selectedPhoto.value && selectedPhoto.value.id === id) {
-            selectedPhoto.value = null;
-          }
-
-          await fetchPhotos(); // 목록도 다시 불러오기
+          if (bestPhoto.value?.id === id) bestPhoto.value = null;
+          if (worstPhoto.value?.id === id) worstPhoto.value = null;
+          if (selectedPhoto.value?.id === id) selectedPhoto.value = null;
+          await fetchPhotos();
         }
       } catch (err) {
         console.error("🚨 사진 삭제 오류:", err);
       }
     };
-
-
 
     const showPhoto = (photo) => {
       selectedPhoto.value = photo;
@@ -242,18 +198,12 @@ export default {
       router.push("/login");
     };
 
-    const startCamera = () => {
-      cameraActive.value = true;
-    };
+    const startCamera = () => cameraActive.value = true;
 
     onMounted(async () => {
       await fetchUser();
-
-      // ✅ 오늘 날짜를 selectedDate에 설정
-      const today = toKoreanDate(new Date());
-      selectedDate.value = today;
+      selectedDate.value = toKoreanDate(new Date());
     });
-
 
     return {
       user,
