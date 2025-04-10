@@ -1,22 +1,40 @@
 <template>
-  <div class="photo-item" @click="$emit('photo-click', photo)">
-    <img :src="photoUrl" alt="사진" />
+  <div class="photo-item" @click="openModal">
+    <img :src="photoUrl" alt="사진" class="photo-img" />
+
     <div class="photo-info">
-      <strong><span class="index">{{ index + 1 }}. </span>{{ formattedDateTime }}</strong>
-      <p class="neck-angle">목 각도: {{ formattedNeckAngle }}°</p>
-      <p class="shoulder-status">어깨 상태: {{ photo.shoulder_status || '정보 없음' }}</p>
+      <div class="info-header">
+        <strong class="date-title">{{ index + 1 }}. {{ formattedDateTime }}</strong>
+        <button class="delete-btn" @click.stop="$emit('deletePhoto', photo.id)">삭제</button>
+      </div>
+
+      <div class="stat-row">
+        <span class="label"> 🐢목 각도:</span>
+        <span>{{ formattedNeckAngle }}°</span>
+      </div>
+      <div class="stat-row">
+        <span class="label"> 🤷어깨 상태:</span>
+        <span>{{ photo.shoulder_status || '정보 없음' }}</span>
+      </div>
     </div>
-    <button class="delete-btn" @click.stop="$emit('deletePhoto', photo.id)">삭제</button>
+
+    <!-- 모달 컴포넌트 -->
+    <PhotoModal v-if="modalOpen" :photoUrl="photoUrl" @close="closeModal" />
   </div>
 </template>
 
-
 <script>
+import PhotoModal from './PhotoModal.vue'; // PhotoModal 컴포넌트 import
+
 export default {
   props: {
     photo: { type: Object, required: true },
-    formatTime: { type: Function, required: true } ,// 외부에서 시간 포맷팅 함수 받기
-    index: { type: Number, required: false, default: 0 } // ← 여기 추가!
+    index: { type: Number, default: 0 }
+  },
+  data() {
+    return {
+      modalOpen: false // 모달 상태
+    };
   },
   computed: {
     photoUrl() {
@@ -25,7 +43,6 @@ export default {
     formattedDateTime() {
       const date = new Date(this.photo.uploaded_at);
       date.setHours(date.getHours() + 9); // 한국 시간 보정
-      const y = date.getFullYear();
       const m = String(date.getMonth() + 1).padStart(2, '0');
       const d = String(date.getDate()).padStart(2, '0');
       const hh = String(date.getHours()).padStart(2, '0');
@@ -36,11 +53,23 @@ export default {
       const angle = parseFloat(this.photo.neck_angle);
       return isNaN(angle) ? 'N/A' : angle.toFixed(2);
     }
+  },
+  methods: {
+    openModal() {
+      this.modalOpen = true; // 모달 열기
+    },
+    closeModal() {
+      this.modalOpen = false; // 모달 닫기
+    }
+  },
+  components: {
+    PhotoModal // PhotoModal 컴포넌트 추가
   }
 };
 </script>
 
 <style scoped>
+/* 기존 스타일 유지 */
 .photo-item {
   display: flex;
   align-items: center;
@@ -48,8 +77,8 @@ export default {
   border-radius: 10px;
   margin-bottom: 10px;
   padding: 10px;
-  cursor: pointer;
   position: relative;
+  cursor: pointer;
   transition: background-color 0.2s;
 }
 
@@ -57,29 +86,32 @@ export default {
   background-color: #e6f0ff;
 }
 
-.photo-item img {
-  width: 60px;
-  height: 60px;
+.photo-img {
+  width: 80px;
+  height: 80px;
   object-fit: cover;
   border-radius: 8px;
-  margin-right: 10px;
+  margin-right: 12px;
 }
 
 .photo-info {
-  flex-grow: 1;
+  flex: 1;
 }
 
-.neck-angle,
-.shoulder-status {
-  font-size: 13px;
-  color: #555;
-  margin-top: 2px;
+.info-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: bold;
+  margin-bottom: 4px;
+}
+
+.date-title {
+  font-size: 14px;
+  color: #222;
 }
 
 .delete-btn {
-  position: absolute;
-  top: 6px;
-  right: 8px;
   background: transparent;
   border: none;
   color: #888;
@@ -90,13 +122,16 @@ export default {
 .delete-btn:hover {
   color: red;
 }
-.index {
-  display: inline-block;
-  width: 24px;
-  text-align: right;
-  margin-right: 4px;
-  color: #444;
+
+.stat-row {
+  font-size: 13px;
+  color: #333;
+  margin-top: 2px;
+  display: flex;
+  gap: 6px;
 }
 
-
+.label {
+  color: #777;
+}
 </style>
