@@ -9,22 +9,21 @@
       </div>
 
       <div class="stat-row">
-        <span class="label"> 🐢목 각도:</span>
+        <span class="label">🐢 목 각도:</span>
         <span>{{ formattedNeckAngle }}°</span>
       </div>
       <div class="stat-row">
-        <span class="label"> 🤷어깨 상태:</span>
+        <span class="label">🤷 어깨 상태:</span>
         <span>{{ photo.shoulder_status || '정보 없음' }}</span>
       </div>
     </div>
 
-    <!-- 모달 컴포넌트 -->
     <PhotoModal v-if="modalOpen" :photoUrl="photoUrl" @close="closeModal" />
   </div>
 </template>
 
 <script>
-import PhotoModal from './PhotoModal.vue'; // PhotoModal 컴포넌트 import
+import PhotoModal from './PhotoModal.vue';
 
 export default {
   props: {
@@ -33,7 +32,7 @@ export default {
   },
   data() {
     return {
-      modalOpen: false // 모달 상태
+      modalOpen: false
     };
   },
   computed: {
@@ -41,13 +40,7 @@ export default {
       return `http://210.101.236.158:5000${this.photo.photo_url}`;
     },
     formattedDateTime() {
-      const date = new Date(this.photo.uploaded_at);
-      date.setHours(date.getHours() + 9); // 한국 시간 보정
-      const m = String(date.getMonth() + 1).padStart(2, '0');
-      const d = String(date.getDate()).padStart(2, '0');
-      const hh = String(date.getHours()).padStart(2, '0');
-      const mm = String(date.getMinutes()).padStart(2, '0');
-      return `${m}월 ${d}일 ${hh}:${mm}`;
+      return this.formatToKoreanTime(this.photo.uploaded_at);
     },
     formattedNeckAngle() {
       const angle = parseFloat(this.photo.neck_angle);
@@ -56,20 +49,28 @@ export default {
   },
   methods: {
     openModal() {
-      this.modalOpen = true; // 모달 열기
+      this.modalOpen = true;
     },
     closeModal() {
-      this.modalOpen = false; // 모달 닫기
+      this.modalOpen = false;
+    },
+    formatToKoreanTime(dateString) {
+      const date = new Date(dateString);
+      return new Intl.DateTimeFormat('ko-KR', {
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        hourCycle: 'h23',
+        timeZone: 'Asia/Seoul'
+      }).format(date).replace(/\. /g, '월 ').replace(/\./, '일');
     }
   },
-  components: {
-    PhotoModal // PhotoModal 컴포넌트 추가
-  }
+  components: { PhotoModal }
 };
 </script>
 
 <style scoped>
-/* 기존 스타일 유지 */
 .photo-item {
   display: flex;
   align-items: center;
@@ -77,7 +78,6 @@ export default {
   border-radius: 10px;
   margin-bottom: 10px;
   padding: 10px;
-  position: relative;
   cursor: pointer;
   transition: background-color 0.2s;
 }

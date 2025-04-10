@@ -3,8 +3,21 @@
     <h3>📊 자세 분석 요약</h3>
 
     <div class="charts">
-      <NeckDonut :photos="photos" />
-      <ShoulderDonut :photos="photos" />
+      <div class="chart-container">
+        <NeckDonut :photos="photos" />
+        <!-- 목 자세 분석 결과 텍스트 -->
+        <div class="analysis-text">
+          <p>🐢 목 자세 분석: {{ dynamicNeckAnalysis }}</p>
+        </div>
+      </div>
+
+      <div class="chart-container">
+        <ShoulderDonut :photos="photos" />
+        <!-- 어깨 분석 결과 텍스트 -->
+        <div class="analysis-text">
+          <p>🤷 어깨 분석: {{ dynamicShoulderAnalysis }}</p>
+        </div>
+      </div>
     </div>
 
     <AnalysisComment
@@ -26,7 +39,6 @@
 import NeckDonut from './NeckDonut.vue';
 import ShoulderDonut from './ShoulderDonut.vue';
 import AnalysisComment from './AnalysisComment.vue';
-
 import SummaryCards from './SummaryCards.vue';
 
 export default {
@@ -68,24 +80,85 @@ export default {
       if (this.photos.length === 0) return '없음';
       const last = new Date(this.photos[this.photos.length - 1].measured_at || this.photos[this.photos.length - 1].uploaded_at);
       return `${last.getMonth() + 1}월 ${last.getDate()}일 ${last.getHours()}:${last.getMinutes().toString().padStart(2, '0')}`;
+    },
+    // 동적 목 자세 분석 텍스트
+    dynamicNeckAnalysis() {
+      if (this.highAngleRatio >= 50) {
+        return `${this.highAngleRatio}% 거북목 의심`;
+      } else {
+        return `${this.highAngleRatio}% 정상`;
+      }
+    },
+    // 동적 어깨 분석 텍스트
+    dynamicShoulderAnalysis() {
+      if (this.shoulderAvg > 30) {
+        return '어깨 기울기 심각';
+      } else {
+        return '어깨 기울기 정상';
+      }
     }
   }
 };
 </script>
 
 <style scoped>
+.charts {
+  display: flex;
+  justify-content: space-around; /* 차트들 사이에 여백을 자동으로 배치 */
+  gap: 40px; /* 차트들 간의 간격 */
+  margin-bottom: 24px;
+}
+
 .summary-box {
   background: #fefefe;
   border: 1px solid #d1e7dd;
   padding: 24px;
   border-radius: 14px;
   margin-top: 20px;
+  width: 90%;
+  max-width: 1200px; /* 최대 크기 제한 */
+  margin: 0 auto;
 }
-.charts {
+
+.summary-info {
   display: flex;
-  flex-wrap: wrap;
-  justify-content: space-around;
+  justify-content: space-between;
   gap: 20px;
-  margin-bottom: 24px;
+  margin-top: 24px;
+}
+
+.timer-text {
+  font-size: 16px;
+  margin-top: 12px;
+  color: #333;
+}
+
+.result-text {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 12px;
+}
+
+.result-text div {
+  font-size: 14px;
+  color: #666;
+}
+
+.result-text .highlight {
+  font-weight: bold;
+  color: #d9534f; /* 경고 색상 */
+}
+
+.button-group {
+  display: flex;
+  justify-content: space-around;
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.analysis-text {
+  margin-top: 16px;
+  font-size: 14px;
+  color: #333;
 }
 </style>

@@ -73,17 +73,18 @@ export default {
   },
   emits: ['showPhoto', 'deletePhoto', 'update:selectedDate', 'handlePhotoUploaded'],
   computed: {
-    bestPhotos() {
-      return [...this.filteredPhotos]
-        .filter(photo => photo.type === 'best')
-        .sort((a, b) => new Date(a.uploaded_at) - new Date(b.uploaded_at));
-    },
-    worstPhotos() {
-      return [...this.filteredPhotos]
-        .filter(photo => photo.type === 'worst')
-        .sort((a, b) => new Date(a.uploaded_at) - new Date(b.uploaded_at));
-    },
+  bestPhotos() {
+    return [...this.filteredPhotos]
+      .filter(photo => photo.type === 'best')
+      .sort((a, b) => new Date(b.uploaded_at) - new Date(a.uploaded_at)); // 내림차순
   },
+  worstPhotos() {
+    return [...this.filteredPhotos]
+      .filter(photo => photo.type === 'worst')
+      .sort((a, b) => new Date(b.uploaded_at) - new Date(a.uploaded_at)); // 내림차순
+  },
+},
+
   methods: {
     async deleteAll(type) {
       const confirmMsg =

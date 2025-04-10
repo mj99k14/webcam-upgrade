@@ -1,6 +1,6 @@
 <template>
     <div class="chart-box">
-      <h4 class="chart-title">💪 어깨 균형 분석</h4>
+      <h3 class="chart-title"> 🤷어깨 균형 분석</h3>
       <Doughnut :data="donutData" :options="donutOptions" />
       <div class="legend">
         <span class="legend-item"><span class="dot orange"></span> 어깨 불균형</span>

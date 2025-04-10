@@ -1,5 +1,5 @@
 <template>
-    <p class="summary-remark">💬 {{ message }}</p>
+    <p class="summary-remark"> {{ message }}</p>
   </template>
   
   <script>
