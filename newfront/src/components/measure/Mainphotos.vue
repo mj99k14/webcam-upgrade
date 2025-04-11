@@ -1,7 +1,7 @@
 <template>
   <div class="main">
     <!-- ✅ 오늘의 자세 피드백 -->
-    <TodayFeedback v-if="user" :userId="user.user_id" />
+
 
     <!-- ✅ 결과 사진 -->
     <div class="result-photo-group-row" v-if="measurementFinished && (bestFrameUrl || worstFrameUrl)">
@@ -38,6 +38,7 @@
       <p class="timer-text">⏱ 측정 시간: {{ formattedTime }}
       </p>
     </div>
+    <TodayFeedback v-if="user" :userId="user.user_id" />
 
     <!-- ✅ 측정 결과 요약 -->
     <div v-if="measurementFinished" class="result-info">
@@ -371,15 +372,21 @@ export default {
 </script>
 
 <style scoped>
-/* ✅ 전체 레이아웃 */
 .main {
   padding: 40px 20px;
   background-color: #fafafa;
   font-family: 'Segoe UI', sans-serif;
-  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border: 2px solid #90caf9;
+  border-radius: 16px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+  max-width: 800px;
+  margin: 40px auto;
 }
 
-/* ✅ 비디오 + 캔버스 */
+/* 📷 비디오 + 캔버스 */
 .video-canvas {
   position: relative;
   width: 100%;
@@ -390,7 +397,9 @@ export default {
   overflow: hidden;
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
   background-color: #000;
+  aspect-ratio: 4 / 3; /* 640x480 기준 비율 */
 }
+
 video,
 canvas {
   position: absolute;
@@ -398,15 +407,31 @@ canvas {
   left: 0;
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
 }
 
-/* ✅ 제목 영역 */
+/* 🧾 제목 */
 .title-group {
   margin-bottom: 24px;
+  text-align: center;
 }
 
-/* ✅ 버튼 공통 */
+.camera-guide {
+  margin: 10px 0;
+  color: #555;
+  font-size: 15px;
+}
+
+/* ⏱ 측정 시간 텍스트 */
+.timer-text {
+  font-size: 24px;
+  font-weight: bold;
+  margin-top: 16px;
+  color: #1565c0;
+  text-align: center;
+}
+
+/* 🔘 버튼 공통 */
 button {
   display: inline-flex;
   align-items: center;
@@ -419,9 +444,17 @@ button {
   border: 2px solid transparent;
   cursor: pointer;
   transition: all 0.2s ease-in-out;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
 }
-/* ✅ 다시 측정하기 버튼 감싸는 div */
+
+.button-group {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 16px;
+  margin: 20px 0;
+}
+
 .button-center {
   display: flex;
   justify-content: center;
@@ -429,6 +462,7 @@ button {
   margin-top: 20px;
 }
 
+/* ✅ 버튼 스타일 */
 .start-btn {
   background-color: #1976d2;
   color: white;
@@ -471,31 +505,22 @@ button {
   transform: scale(1.03);
 }
 
-.button-group {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 16px;
-  margin: 20px 0;
-}
-
-/* ✅ 측정 결과 요약 */
+/* 🧠 측정 결과 요약 */
 .result-info {
   margin-top: 40px;
   background: #ffffff;
   padding: 28px 24px;
   border-radius: 16px;
   max-width: 520px;
-  margin-left: auto;
-  margin-right: auto;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.07);
   border: 1px solid #e0e0e0;
+  text-align: left;
 }
+
 .result-info h3 {
-  margin-top: 0;
   font-size: 20px;
-  color: #333;
   margin-bottom: 16px;
+  color: #333;
   border-bottom: 1px solid #ddd;
   padding-bottom: 8px;
 }
@@ -507,11 +532,13 @@ button {
   align-items: center;
   justify-content: space-between;
 }
+
 .label {
   font-weight: bold;
   color: #333;
   min-width: 160px;
 }
+
 .value {
   font-size: 18px;
   font-weight: 600;
@@ -520,38 +547,40 @@ button {
   color: #1565c0;
 }
 
-/* ✅ 메시지 + 버튼 */
+/* ✅ 저장 메시지 */
 .message-wrapper {
   margin-top: 24px;
   text-align: center;
 }
+
 .message {
   background: #e8f5e9;
   padding: 10px 16px;
   border-radius: 8px;
   color: #2e7d32;
   font-weight: bold;
-  display: inline-flex; /* 아이콘+텍스트를 수평 정렬 */
+  display: inline-flex;
   align-items: center;
-  gap: 8px; /* 아이콘과 텍스트 간 간격 */
+  gap: 8px;
   box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
-  margin: 0 auto 16px auto; 
+  margin: 0 auto 16px auto;
 }
 
-/* ✅ 결과 사진 */
+/* 🖼️ 결과 사진 */
 .result-photo-group-row {
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  flex-wrap: nowrap;       /* 줄바꿈 금지 */
+  flex-wrap: nowrap;
   gap: 40px;
-  overflow-x: auto;        /* 넘치면 스크롤 */
+  overflow-x: auto;
   padding-bottom: 10px;
+  margin-top: 20px;
 }
 
 .photo-block {
-  width: 260px;            /* 조금 더 작게 */
-  flex-shrink: 0;          /* 작아지지 않게 */
+  width: 260px;
+  flex-shrink: 0;
   text-align: center;
 }
 
@@ -561,5 +590,4 @@ button {
   border: 3px solid #ccc;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
-
 </style>

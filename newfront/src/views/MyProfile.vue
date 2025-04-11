@@ -125,66 +125,66 @@ export default {
     };
 
     const fetchPhotos = async () => {
-      if (!user.value.id) return;
-      try {
-        const res = await axios.get(`http://210.101.236.158:5000/api/photos?user_id=${user.value.id}`);
-        photos.value = [...res.data];
+    if (!user.value.id) return;
 
-        const today = toKoreanDate(new Date());
-        const todayPhotos = photos.value.filter(p => toKoreanDate(p.uploaded_at) === today);
+    try {
+      const res = await axios.get(`http://210.101.236.158:5000/api/photos?user_id=${user.value.id}`);
+      photos.value = [...res.data];
 
-        if (todayPhotos.length > 0) {
-          selectedDate.value = today;
-          selectedPhoto.value = todayPhotos.find(p => p.type === 'best') || todayPhotos.find(p => p.type === 'worst') || todayPhotos[0] || null;
-        } else {
-          const sorted = [...photos.value].sort((a, b) => new Date(b.uploaded_at) - new Date(a.uploaded_at));
-          const latestDate = toKoreanDate(sorted[0]?.uploaded_at);
-          if (latestDate) {
-            selectedDate.value = latestDate;
-            const latestPhotos = sorted.filter(p => toKoreanDate(p.uploaded_at) === latestDate);
-            selectedPhoto.value = latestPhotos[0] || null;
+      const today = toKoreanDate(new Date());
+
+      // 📌 날짜별 그룹화
+      const sortedPhotos = [...photos.value].sort((a, b) => new Date(a.uploaded_at) - new Date(b.uploaded_at));
+      const todayPhotos = sortedPhotos.filter(p => toKoreanDate(p.uploaded_at) === today);
+
+      if (todayPhotos.length > 0) {
+        selectedDate.value = today;
+        selectedPhoto.value = todayPhotos[todayPhotos.length - 1]; // ✅ 오늘 마지막 사진
+      } else if (sortedPhotos.length > 0) {
+        const latestDate = toKoreanDate(sortedPhotos[sortedPhotos.length - 1].uploaded_at);
+        const latestPhotos = sortedPhotos.filter(p => toKoreanDate(p.uploaded_at) === latestDate);
+
+        selectedDate.value = latestDate;
+        selectedPhoto.value = latestPhotos[latestPhotos.length - 1]; // ✅ 최신 날짜 마지막 사진
+      } else {
+        selectedPhoto.value = null;
+      }
+
+      // 📌 best / worst 사진 설정
+      bestPhoto.value = photos.value.find(p => p.type === 'best') || null;
+      worstPhoto.value = photos.value.find(p => p.type === 'worst') || null;
+
+    } catch (err) {
+      console.error("🚨 사진 목록 오류:", err);
+    }
+  };
+
+
+      const handlePhotoUploaded = async () => {
+        await fetchPhotos();
+      };
+
+      const deletePhoto = async (id) => {
+        try {
+          const res = await axios.delete(`http://210.101.236.158:5000/api/photos/${id}`);
+          if (res.data.success) {
+            if (bestPhoto.value?.id === id) bestPhoto.value = null;
+            if (worstPhoto.value?.id === id) worstPhoto.value = null;
+            if (selectedPhoto.value?.id === id) selectedPhoto.value = null;
+            await fetchPhotos();
           }
+        } catch (err) {
+          console.error("🚨 사진 삭제 오류:", err);
         }
+      };
 
-        bestPhoto.value = photos.value.find(p => p.type === 'best') || null;
-        worstPhoto.value = photos.value.find(p => p.type === 'worst') || null;
-
-      } catch (err) {
-        console.error("🚨 사진 목록 오류:", err);
-      }
-
-      // 🔄 selectedPhoto가 없으면 최신 사진으로 자동 지정
-      if (!selectedPhoto.value && photos.value.length > 0) {
-        const sorted = [...photos.value].sort((a, b) => new Date(b.uploaded_at) - new Date(a.uploaded_at));
-        selectedPhoto.value = sorted[0];
-        selectedDate.value = toKoreanDate(sorted[0].uploaded_at); 
-      }
-    };
-
-    const handlePhotoUploaded = async () => {
-      await fetchPhotos();
-    };
-
-    const deletePhoto = async (id) => {
-      try {
-        const res = await axios.delete(`http://210.101.236.158:5000/api/photos/${id}`);
-        if (res.data.success) {
-          if (bestPhoto.value?.id === id) bestPhoto.value = null;
-          if (worstPhoto.value?.id === id) worstPhoto.value = null;
-          if (selectedPhoto.value?.id === id) selectedPhoto.value = null;
-          await fetchPhotos();
-        }
-      } catch (err) {
-        console.error("🚨 사진 삭제 오류:", err);
-      }
-    };
-
-    const showPhoto = (photo) => {
+    const showPhoto = (photo, openModal = true) => {
       selectedPhoto.value = photo;
-      if (photo?.photo_url) {
+      if (openModal && photo?.photo_url) {
         modalPhotoUrl.value = `http://210.101.236.158:5000${photo.photo_url}`;
       }
     };
+
 
     const deleteAccount = async () => {
       if (confirm("정말 회원 탈퇴를 진행하시겠습니까?")) {
