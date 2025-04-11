@@ -22,40 +22,50 @@
 
     <!-- 가장 좋은 자세 -->
     <div class="section">
-      <div class="section-header">
-        <h3>가장 좋은 자세 ({{ bestPhotos.length }}장)</h3>
-        <button class="delete-all-btn" @click="deleteAll('best')">전체 삭제</button>
+      <div class="section-header" @click="isBestOpen = !isBestOpen">
+        <h3 class="accordion-title">
+          <span>{{ isBestOpen ? '▼' : '▶' }}</span> 가장 좋은 자세 ({{ bestPhotos.length }}장)
+        </h3>
+        <button class="delete-all-btn" @click.stop="deleteAll('best')">전체 삭제</button>
       </div>
-      <div class="scroll-block">
-        <div v-for="(photo, idx) in bestPhotos" :key="photo.id" class="photo-entry">
-          <PhotoItem
-            :photo="photo"
-            :formatTime="formatTime"
-            :index="idx"
-            @photo-click="$emit('showPhoto', photo)"
-            @deletePhoto="$emit('deletePhoto', photo.id)"
-          />
+
+      <transition name="fade">
+        <div class="scroll-block" v-show="isBestOpen">
+          <div v-for="(photo, idx) in bestPhotos" :key="photo.id" class="photo-entry">
+            <PhotoItem
+              :photo="photo"
+              :formatTime="formatTime"
+              :index="idx"
+              @photo-click="$emit('showPhoto', photo)"
+              @deletePhoto="$emit('deletePhoto', photo.id)"
+            />
+          </div>
         </div>
-      </div>
+      </transition>
     </div>
 
     <!-- 가장 나쁜 자세 -->
     <div class="section">
-      <div class="section-header">
-        <h3>가장 나쁜 자세 ({{ worstPhotos.length }}장)</h3>
-        <button class="delete-all-btn" @click="deleteAll('worst')">전체 삭제</button>
+      <div class="section-header" @click="isWorstOpen = !isWorstOpen">
+        <h3 class="accordion-title">
+          <span>{{ isWorstOpen ? '▼' : '▶' }}</span> 가장 나쁜 자세 ({{ worstPhotos.length }}장)
+        </h3>
+        <button class="delete-all-btn" @click.stop="deleteAll('worst')">전체 삭제</button>
       </div>
-      <div class="scroll-block">
-        <div v-for="(photo, idx) in worstPhotos" :key="photo.id" class="photo-entry">
-          <PhotoItem
-            :photo="photo"
-            :formatTime="formatTime"
-            :index="idx"
-            @photo-click="$emit('showPhoto', photo)"
-            @deletePhoto="$emit('deletePhoto', photo.id)"
-          />
+
+      <transition name="fade">
+        <div class="scroll-block" v-show="isWorstOpen">
+          <div v-for="(photo, idx) in worstPhotos" :key="photo.id" class="photo-entry">
+            <PhotoItem
+              :photo="photo"
+              :formatTime="formatTime"
+              :index="idx"
+              @photo-click="$emit('showPhoto', photo)"
+              @deletePhoto="$emit('deletePhoto', photo.id)"
+            />
+          </div>
         </div>
-      </div>
+      </transition>
     </div>
   </div>
 </template>
@@ -72,19 +82,24 @@ export default {
     formatTime: Function,
   },
   emits: ['showPhoto', 'deletePhoto', 'update:selectedDate', 'handlePhotoUploaded'],
+  data() {
+    return {
+      isBestOpen: true,
+      isWorstOpen: true,
+    };
+  },
   computed: {
-  bestPhotos() {
-    return [...this.filteredPhotos]
-      .filter(photo => photo.type === 'best')
-      .sort((a, b) => new Date(b.uploaded_at) - new Date(a.uploaded_at)); // 내림차순
+    bestPhotos() {
+      return [...this.filteredPhotos]
+        .filter(photo => photo.type === 'best')
+        .sort((a, b) => new Date(b.uploaded_at) - new Date(a.uploaded_at));
+    },
+    worstPhotos() {
+      return [...this.filteredPhotos]
+        .filter(photo => photo.type === 'worst')
+        .sort((a, b) => new Date(b.uploaded_at) - new Date(a.uploaded_at));
+    },
   },
-  worstPhotos() {
-    return [...this.filteredPhotos]
-      .filter(photo => photo.type === 'worst')
-      .sort((a, b) => new Date(b.uploaded_at) - new Date(a.uploaded_at)); // 내림차순
-  },
-},
-
   methods: {
     async deleteAll(type) {
       const confirmMsg =
@@ -98,8 +113,8 @@ export default {
         await this.$emit('deletePhoto', photo.id);
       }
       this.$emit('handlePhotoUploaded');
-    }
-  }
+    },
+  },
 };
 </script>
 
@@ -139,19 +154,27 @@ export default {
   text-align: left;
 }
 
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  cursor: pointer;
+}
+
+.accordion-title {
+  display: flex;
+  align-items: center;
+  font-size: 18px;
+  font-weight: bold;
+}
+
 .scroll-block {
   max-height: 300px;
   overflow-y: auto;
   padding-right: 10px;
   border-top: 1px solid #ddd;
   margin-top: 8px;
-}
-
-.section-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 8px;
 }
 
 .photo-entry {
@@ -170,5 +193,16 @@ export default {
 }
 .delete-all-btn:hover {
   background-color: #c62828;
+}
+
+/* Transition */
+.fade-enter-active,
+.fade-leave-active {
+  transition: all 0.3s ease;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+  transform: translateY(-8px);
 }
 </style>

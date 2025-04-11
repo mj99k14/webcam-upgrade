@@ -43,13 +43,13 @@
 import axios from "axios";
 import { ref, onMounted, computed, watch } from "vue";
 import { useRouter } from "vue-router";
-import UserInfo from '../components/UserInfo.vue';
-import PhotoList from '../components/PhotoList.vue';
-import MainPhotos from '../components/Mainphotos.vue';
-import SummaryStats from '../components/summary/SummaryStats.vue';
-import UserSummary from '../components/UserSummary.vue';
-import PhotoModal from '../components/PhotoModal.vue';
-import MiniCalendar from '../components/MiniCalendar.vue';
+import UserInfo from '../components/user/UserInfo.vue';
+import UserSummary from '../components/user/UserSummary.vue';// 🧍 사용자 관련
+import PhotoList from '../components/photo/PhotoList.vue';
+import PhotoModal from '../components/photo/PhotoModal.vue';// 📸 사진 관련
+import MainPhotos from '../components/measure/Mainphotos.vue';// 📏 측정 관련
+import SummaryStats from '../components/report/SummaryStats.vue';// 🧠 리포트  report
+import TodayFeedback from '../components/feedback/TodayFeedback.vue';   // 📅 피드백
 
 export default {
   components: {
@@ -59,7 +59,7 @@ export default {
     SummaryStats,
     UserSummary,
     PhotoModal,
-    MiniCalendar
+    TodayFeedback
   },
   setup() {
     const router = useRouter();
@@ -151,6 +151,13 @@ export default {
 
       } catch (err) {
         console.error("🚨 사진 목록 오류:", err);
+      }
+
+      // 🔄 selectedPhoto가 없으면 최신 사진으로 자동 지정
+      if (!selectedPhoto.value && photos.value.length > 0) {
+        const sorted = [...photos.value].sort((a, b) => new Date(b.uploaded_at) - new Date(a.uploaded_at));
+        selectedPhoto.value = sorted[0];
+        selectedDate.value = toKoreanDate(sorted[0].uploaded_at); 
       }
     };
 
@@ -298,6 +305,9 @@ export default {
 .photo-list-section {
   flex: 2;
   min-width: 380px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
 }
 
 .full-width {
@@ -310,6 +320,4 @@ export default {
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
-
-
 </style>

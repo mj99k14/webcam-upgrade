@@ -1,20 +1,24 @@
 <template>
   <div class="main">
-    <!-- 결과 사진 -->
+    <!-- ✅ 오늘의 자세 피드백 -->
+    <TodayFeedback v-if="user" :userId="user.user_id" />
+
+    <!-- ✅ 결과 사진 -->
     <div class="result-photo-group-row" v-if="measurementFinished && (bestFrameUrl || worstFrameUrl)">
-    <div v-if="bestFrameUrl" class="photo-block" @click="openModal(bestFrameUrl)">
-      <p>✅ 가장 좋은 자세 ({{ bestNeckAngle }}°)</p>
-      <img :src="bestFrameUrl" alt="좋은 자세" />
+      <div v-if="bestFrameUrl" class="photo-block" @click="openModal(bestFrameUrl)">
+        <p>✅ 가장 좋은 자세 ({{ bestNeckAngle }}°)</p>
+        <img :src="bestFrameUrl" alt="좋은 자세" />
+      </div>
+      <div v-if="worstFrameUrl" class="photo-block" @click="openModal(worstFrameUrl)">
+        <p>⚠️ 가장 나쁜 자세 ({{ worstNeckAngle }}°)</p>
+        <img :src="worstFrameUrl" alt="나쁜 자세" />
+      </div>
     </div>
-    <div v-if="worstFrameUrl" class="photo-block" @click="openModal(worstFrameUrl)">
-      <p>⚠️ 가장 나쁜 자세 ({{ worstNeckAngle }}°)</p>
-      <img :src="worstFrameUrl" alt="나쁜 자세" />
-    </div>
-  </div>
 
-
+    <!-- ✅ 확대 모달 -->
     <PhotoModal v-if="modalUrl" :photoUrl="modalUrl" @close="modalUrl = null" />
 
+    <!-- ✅ 측정 시작 영역 -->
     <div class="title-group">
       <h2>거북목 측정</h2>
       <p class="camera-guide">📌 정확한 측정을 위해 카메라는 반드시 사용자의 왼쪽에 설치해주세요.</p>
@@ -25,22 +29,24 @@
       <button v-else @click="toggleMeasurement" class="start-btn">📸 측정 시작</button>
     </div>
 
+    <!-- ✅ 카메라 및 타이머 영역 -->
     <div v-show="showMeasurementArea && !measurementFinished" class="measurement-area">
       <div class="video-canvas">
         <video ref="video" autoplay muted playsinline></video>
         <canvas ref="canvas"></canvas>
       </div>
-      <p class="timer-text">⏱ 측정 시간: {{ formattedTime }}</p>
+      <p class="timer-text">⏱ 측정 시간: {{ formattedTime }}
+      </p>
     </div>
 
-    <!-- ✅ 리팩토링된 결과 요약 박스 -->
+    <!-- ✅ 측정 결과 요약 -->
     <div v-if="measurementFinished" class="result-info">
       <div class="stat-item">
         <span class="label">📏 평균 목 각도:</span>
         <span class="value blue">{{ averageNeck.toFixed(2) }}°</span>
       </div>
       <div class="stat-item">
-        <span class="label">📐 최대 목 각도:</span>
+        <span class="label">🖐️ 최대 목 각도:</span>
         <span class="value blue">{{ maxNeck.toFixed(2) }}°</span>
       </div>
       <div class="stat-item">
@@ -51,25 +57,26 @@
         ✅ 측정 결과가 저장되었습니다.
       </div>
       <div class="button-center">
-      <button class="restart-btn" @click="restartMeasurement">🔁 다시 측정하기</button>
+        <button class="restart-btn" @click="restartMeasurement">🔁 다시 측정하기</button>
       </div>
     </div>
   </div>
 </template>
-
-
 <script>
-import PhotoModal from './PhotoModal.vue';
+import PhotoModal from '../photo/PhotoModal.vue';
+import TodayFeedback from '../feedback/TodayFeedback.vue';
+
 import { nextTick } from 'vue';
 
 let pose = null;
 let camera = null;
 
 export default {
-  components: { PhotoModal },
+  components: { PhotoModal,TodayFeedback },
   emits: ['handlePhotoUploaded'],
   data() {
     return {
+      user: JSON.parse(localStorage.getItem("user")),
       isCapturing: false,
       showMeasurementArea: false,
       measurementFinished: false,

@@ -31,7 +31,8 @@
 </template>
 
 <script>
-import MiniCalendar from './MiniCalendar.vue';
+// ✅ 이렇게 되어 있어야 정상
+import MiniCalendar from '../calendar/MiniCalendar.vue';
 
 export default {
   components: { MiniCalendar },

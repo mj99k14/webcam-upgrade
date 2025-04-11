@@ -91,7 +91,7 @@ export default {
     },
     // 동적 어깨 분석 텍스트
     dynamicShoulderAnalysis() {
-      if (this.shoulderAvg > 30) {
+      if (this.overallShoulderAvg> 30) {
         return '어깨 기울기 심각';
       } else {
         return '어깨 기울기 정상';
