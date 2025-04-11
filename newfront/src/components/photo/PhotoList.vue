@@ -132,22 +132,6 @@ export default {
 </script>
 
 <style scoped>
-.card-wrapper {
-  background-color: #eaf4ff; /* 연한 파란 배경 */
-  padding: 30px;
-  border-radius: 24px;
-  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.02);
-  max-width: 100%;
-  margin: 0 auto;
-}
-
-.card-inner {
-  background-color: white; /* 내부 흰색 */
-  border-radius: 16px;
-  padding: 24px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-}
-
 .right {
   text-align: center;
 }
@@ -202,6 +186,7 @@ export default {
   margin-bottom: 16px;
   font-weight: bold;
   color: #222;
+  text-align: center;
 }
 
 .photo-wrapper {
@@ -299,6 +284,11 @@ export default {
 .fade-enter-from, .fade-leave-to {
   opacity: 0;
   transform: translateY(-8px);
+}
+
+h2 {
+  text-align: center;
+  margin-bottom: 24px;
 }
 
 </style>
