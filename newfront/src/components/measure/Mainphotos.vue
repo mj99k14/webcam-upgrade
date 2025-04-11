@@ -1,19 +1,17 @@
 <template>
-  <div class="main">
-    <!-- ✅ 오늘의 자세 피드백 -->
-
-
+  <div class="card-wrapper">
+    <div class="card-inner main">
     <!-- ✅ 결과 사진 -->
-    <div class="result-photo-group-row" v-if="measurementFinished && (bestFrameUrl || worstFrameUrl)">
-      <div v-if="bestFrameUrl" class="photo-block" @click="openModal(bestFrameUrl)">
-        <p>✅ 가장 좋은 자세 ({{ bestNeckAngle }}°)</p>
-        <img :src="bestFrameUrl" alt="좋은 자세" />
+      <div class="result-photo-group-row" v-if="measurementFinished && (bestFrameUrl || worstFrameUrl)">
+        <div v-if="bestFrameUrl" class="photo-block" @click="openModal(bestFrameUrl)">
+          <p>✅ 가장 좋은 자세 ({{ bestNeckAngle }}°)</p>
+          <img :src="bestFrameUrl" alt="좋은 자세" />
+        </div>
+        <div v-if="worstFrameUrl" class="photo-block" @click="openModal(worstFrameUrl)">
+          <p>⚠️ 가장 나쁜 자세 ({{ worstNeckAngle }}°)</p>
+          <img :src="worstFrameUrl" alt="나쁜 자세" />
+        </div>
       </div>
-      <div v-if="worstFrameUrl" class="photo-block" @click="openModal(worstFrameUrl)">
-        <p>⚠️ 가장 나쁜 자세 ({{ worstNeckAngle }}°)</p>
-        <img :src="worstFrameUrl" alt="나쁜 자세" />
-      </div>
-    </div>
 
     <!-- ✅ 확대 모달 -->
     <PhotoModal v-if="modalUrl" :photoUrl="modalUrl" @close="modalUrl = null" />
@@ -62,6 +60,8 @@
       </div>
     </div>
   </div>
+</div>
+
 </template>
 <script>
 import PhotoModal from '../photo/PhotoModal.vue';
@@ -373,18 +373,15 @@ export default {
 
 <style scoped>
 .main {
-  padding: 40px 20px;
-  background-color: #fafafa;
+  flex: 1;
+  background-color: white;
+  padding: 24px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  text-align: center;
   font-family: 'Segoe UI', sans-serif;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  border: 2px solid #90caf9;
-  border-radius: 16px;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
-  max-width: 800px;
-  margin: 40px auto;
 }
+
 
 /* 📷 비디오 + 캔버스 */
 .video-canvas {
@@ -590,4 +587,20 @@ button {
   border: 3px solid #ccc;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
+/* 바깥 배경 박스 */
+.card-wrapper {
+  background-color: #eaf4ff; /* 💡 부드러운 연파랑 */
+  padding: 16px;
+  border-radius: 24px; /* 바깥쪽 더 둥글게 */
+  box-shadow: inset 0 0 0 1px rgba(0,0,0,0.02);
+}
+
+/* 안쪽 흰색 콘텐츠 박스 */
+.card-inner {
+  background-color: white;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
 </style>
