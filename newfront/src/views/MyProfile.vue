@@ -1,36 +1,48 @@
 <template>
   <div class="container">
-    <div class="user-info-block">
-      <UserInfo
-        :user="user"
-        :calendarStats="calendarStats"
-        @logout="logout"
-        @deleteAccount="deleteAccount"
-      />
-      <UserSummary :photos="photos" />
+    <!-- ✅ 왼쪽: 유저 정보 -->
+    <div class="card-wrapper user-card">
+      <div class="card-inner">
+        <UserInfo
+          :user="user"
+          :calendarStats="calendarStats"
+          @logout="logout"
+          @deleteAccount="deleteAccount"
+        />
+        <UserSummary :photos="photos" />
+      </div>
     </div>
 
-    <MainPhotos
-      :cameraActive="cameraActive"
-      :bestPhoto="bestPhoto"
-      :worstPhoto="worstPhoto"
-      @startCamera="startCamera"
-      @handlePhotoUploaded="handlePhotoUploaded"
-      @openModal="openModal"
-    />
-
-    <div class="photo-list-section">
-      <PhotoList
-        :filteredPhotos="filteredPhotos"
-        :mainPhotoId="null"
-        :selectedPhoto="selectedPhoto"
-        v-model:selectedDate="selectedDate"
-        :formatTime="formatTime"
-        @showPhoto="showPhoto"
-        @deletePhoto="deletePhoto"
-      />
+    <!-- ✅ 가운데: 측정 영역 (두겹 구조 유지) -->
+    <div class="card-wrapper">
+      <div class="card-inner main">
+        <MainPhotos
+          :cameraActive="cameraActive"
+          :bestPhoto="bestPhoto"
+          :worstPhoto="worstPhoto"
+          @startCamera="startCamera"
+          @handlePhotoUploaded="handlePhotoUploaded"
+          @openModal="openModal"
+        />
+      </div>
     </div>
 
+    <!-- ✅ 오른쪽: 사진 목록 (중복 제거된 두겹 구조) -->
+    <div class="card-wrapper">
+      <div class="card-inner">
+        <PhotoList
+          :filteredPhotos="filteredPhotos"
+          :mainPhotoId="null"
+          :selectedPhoto="selectedPhoto"
+          v-model:selectedDate="selectedDate"
+          :formatTime="formatTime"
+          @showPhoto="showPhoto"
+          @deletePhoto="deletePhoto"
+        />
+      </div>
+    </div>
+
+    <!-- ✅ 하단: 요약 통계 -->
     <div class="full-width">
       <SummaryStats :photos="photos" />
     </div>
@@ -249,43 +261,49 @@ export default {
   font-family: 'Segoe UI', sans-serif;
 }
 
-.container > * {
-  padding: 20px;
-  border-radius: 12px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+.card-wrapper {
+  background-color: #eaf4ff;
+  padding: 16px;
+  border-radius: 24px;
+  box-shadow: inset 0 0 0 1px rgba(0,0,0,0.02);
+  flex: 1;
+  max-width: 100%;
 }
 
-.user-info-block {
-  max-width: 280px;
+.card-inner {
+  background-color: white;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.user-card {
   flex: none;
-  background-color: #e6f2ff;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+  max-width: 280px;
 }
 
-.container > :nth-child(2) {
+.container > .card-wrapper:nth-child(2) {
   flex: 2;
-  background-color: #fffbea;
 }
 
-.container > :nth-child(3) {
+.container > .card-wrapper:nth-child(3) {
   flex: 2;
-  background-color: #ffffff;
 }
 
-.container > .full-width {
+.full-width {
   flex-basis: 100%;
   width: 100%;
-  background-color: #f4fff4;
-  border: 1px solid #bde5bd;
-  padding: 20px;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  margin-top: 20px;
+  background-color: #ffffff;
+  border: 1px solid #ddd;
+  padding: 24px;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
   text-align: center;
 }
 
-.container h2, .container h3 {
+.container h2,
+.container h3 {
   color: #2c3e50;
   border-bottom: 2px solid #eee;
   padding-bottom: 6px;
@@ -300,24 +318,5 @@ export default {
   .container > * {
     max-width: 100%;
   }
-}
-
-.photo-list-section {
-  flex: 2;
-  min-width: 380px;
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-}
-
-.full-width {
-  flex-basis: 100%;
-  width: 100%;
-  margin-top: 20px;
-  background-color: #f4fff4;
-  border: 1px solid #bde5bd;
-  padding: 20px;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 </style>

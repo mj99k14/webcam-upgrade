@@ -1,6 +1,6 @@
 <template>
-  <div class="card-wrapper">
-    <div class="card-inner main">
+
+  
     <!-- ✅ 결과 사진 -->
       <div class="result-photo-group-row" v-if="measurementFinished && (bestFrameUrl || worstFrameUrl)">
         <div v-if="bestFrameUrl" class="photo-block" @click="openModal(bestFrameUrl)">
@@ -59,8 +59,7 @@
         <button class="restart-btn" @click="restartMeasurement">🔁 다시 측정하기</button>
       </div>
     </div>
-  </div>
-</div>
+
 
 </template>
 <script>
@@ -372,16 +371,13 @@ export default {
 </script>
 
 <style scoped>
+
 .main {
   flex: 1;
-  background-color: white;
   padding: 24px;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   text-align: center;
   font-family: 'Segoe UI', sans-serif;
 }
-
 
 /* 📷 비디오 + 캔버스 */
 .video-canvas {
@@ -394,7 +390,7 @@ export default {
   overflow: hidden;
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
   background-color: #000;
-  aspect-ratio: 4 / 3; /* 640x480 기준 비율 */
+  aspect-ratio: 4 / 3;
 }
 
 video,
@@ -587,20 +583,6 @@ button {
   border: 3px solid #ccc;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
-/* 바깥 배경 박스 */
-.card-wrapper {
-  background-color: #eaf4ff; /* 💡 부드러운 연파랑 */
-  padding: 16px;
-  border-radius: 24px; /* 바깥쪽 더 둥글게 */
-  box-shadow: inset 0 0 0 1px rgba(0,0,0,0.02);
-}
-
-/* 안쪽 흰색 콘텐츠 박스 */
-.card-inner {
-  background-color: white;
-  border-radius: 16px;
-  padding: 24px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-}
-
 </style>
+
+

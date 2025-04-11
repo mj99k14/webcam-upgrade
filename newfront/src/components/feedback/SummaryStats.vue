@@ -161,4 +161,16 @@ export default {
   font-size: 14px;
   color: #333;
 }
+.full-width {
+  flex-basis: 100%;
+  width: 100%;
+  background-color: #ffffff; /* 기존: #f4fff4 */
+  border: 1px solid #ddd;     /* 기존: #bde5bd */
+  padding: 24px;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  text-align: center;
+  margin-top: 30px;
+}
+
 </style>

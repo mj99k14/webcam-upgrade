@@ -1,7 +1,5 @@
 <template>
-  <div class="right">
     <h2>📸 사진 목록</h2>
-
      <!-- ✅ 선택한 사진 카드 -->
      <div v-if="selectedPhoto" class="selected-photo-card" @click="$emit('showPhoto', selectedPhoto)">
       <h3 class="card-title">📌 선택한 사진</h3>
@@ -31,9 +29,6 @@
         @input="$emit('update:selectedDate', $event.target.value)"
       />
     </div>
-
-   
-
     <!-- ▶️ 가장 좋은 자세 -->
     <div class="section">
       <div class="section-header" @click="isBestOpen = !isBestOpen">
@@ -79,7 +74,8 @@
         </div>
       </transition>
     </div>
-  </div>
+
+
 </template>
 
 <script>
@@ -136,16 +132,27 @@ export default {
 </script>
 
 <style scoped>
-.right {
-  flex: 1;
-  background-color: white;
+.card-wrapper {
+  background-color: #eaf4ff; /* 연한 파란 배경 */
   padding: 30px;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  border-radius: 24px;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.02);
+  max-width: 100%;
+  margin: 0 auto;
+}
+
+.card-inner {
+  background-color: white; /* 내부 흰색 */
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.right {
   text-align: center;
 }
 
-/* 📅 날짜 필터 */
+/* 날짜 필터 */
 .date-filter {
   display: flex;
   align-items: center;
@@ -157,19 +164,21 @@ export default {
   border-radius: 12px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
   border: 1px solid #cce4ff;
-  max-width: 600px; 
+  max-width: 600px;
 }
+
 .date-label {
   font-weight: bold;
   font-size: 16px;
 }
+
 .date-input {
   padding: 10px 14px;
   border: 1px solid #ccc;
   border-radius: 8px;
   font-size: 16px;
   min-width: 180px;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
   transition: border-color 0.2s ease;
 }
 .date-input:focus {
@@ -177,7 +186,7 @@ export default {
   outline: none;
 }
 
-/* 🖼️ 선택한 사진 카드 */
+/* 선택한 사진 */
 .selected-photo-card {
   background: #f8f9fa;
   padding: 24px;
@@ -187,15 +196,18 @@ export default {
   text-align: center;
   max-width: 600px;
 }
+
 .card-title {
   font-size: 20px;
   margin-bottom: 16px;
   font-weight: bold;
   color: #222;
 }
+
 .photo-wrapper {
   position: relative;
 }
+
 .main-selected-photo {
   width: 100%;
   max-height: 400px;
@@ -203,11 +215,13 @@ export default {
   border-radius: 10px;
   border: 1px solid #ccc;
 }
+
 .shoulder-status-text {
   margin-top: 12px;
   font-weight: bold;
   font-size: 15px;
 }
+
 .shoulder-status-text span {
   padding: 4px 8px;
   border-radius: 6px;
@@ -226,7 +240,7 @@ export default {
   color: #555;
 }
 
-/* 📦 리스트 섹션 */
+/* 사진 리스트 */
 .section {
   margin-top: 30px;
   text-align: left;
@@ -264,7 +278,6 @@ export default {
   margin-bottom: 12px;
 }
 
-/* ❌ 삭제 버튼 */
 .delete-all-btn {
   background-color: #e53935;
   color: white;
@@ -279,7 +292,7 @@ export default {
   background-color: #c62828;
 }
 
-/* 🎬 전환 애니메이션 */
+/* 전환 효과 */
 .fade-enter-active, .fade-leave-active {
   transition: all 0.3s ease;
 }
