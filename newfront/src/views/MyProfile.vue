@@ -46,7 +46,6 @@
     <div class="full-width">
       <SummaryStats :photos="photos" />
     </div>
-
     <PhotoModal v-if="modalPhotoUrl" :photoUrl="modalPhotoUrl" @close="modalPhotoUrl = null" />
   </div>
 </template>
@@ -56,12 +55,15 @@ import axios from "axios";
 import { ref, onMounted, computed, watch } from "vue";
 import { useRouter } from "vue-router";
 import UserInfo from '../components/user/UserInfo.vue';
-import UserSummary from '../components/user/UserSummary.vue';// 🧍 사용자 관련
+import UserSummary from '../components/user/UserSummary.vue';//  사용자 관련
 import PhotoList from '../components/photo/PhotoList.vue';
-import PhotoModal from '../components/photo/PhotoModal.vue';// 📸 사진 관련
-import MainPhotos from '../components/measure/Mainphotos.vue';// 📏 측정 관련
-import SummaryStats from '../components/report/SummaryStats.vue';// 🧠 리포트  report
-import TodayFeedback from '../components/feedback/TodayFeedback.vue';   // 📅 피드백
+import PhotoModal from '../components/photo/PhotoModal.vue';// 사진 관련
+import MainPhotos from '../components/measure/Mainphotos.vue';// 측정 관련
+import SummaryStats from '../components/report/SummaryStats.vue';//  리포트  report
+import TodayFeedback from '../components/feedback/TodayFeedback.vue';
+
+
+
 
 export default {
   components: {
@@ -71,7 +73,7 @@ export default {
     SummaryStats,
     UserSummary,
     PhotoModal,
-    TodayFeedback
+    TodayFeedback,
   },
   setup() {
     const router = useRouter();
@@ -289,17 +291,21 @@ export default {
 .container > .card-wrapper:nth-child(3) {
   flex: 2;
 }
-
 .full-width {
-  flex-basis: 100%;
   width: 100%;
-  margin-top: 20px;
-  background-color: #ffffff;
-  border: 1px solid #ddd;
+  margin-top: 24px;
+
+  display: block;
+  background-color: #eaf4ff;
   padding: 24px;
+  border: 1px solid #cce0f5;
   border-radius: 16px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-  text-align: center;
+
+  /* 👇 아래 이 두 줄 꼭 제거해야 너비 맞음 */
+  max-width: none !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
 }
 
 .container h2,

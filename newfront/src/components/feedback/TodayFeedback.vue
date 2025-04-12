@@ -1,178 +1,181 @@
 <template>
-    <div class="feedback-card">
-      <h3>
-        📅 오늘의 자세 피드백
-         <span v-if="formattedDate">({{ formattedDate }})</span>
-      </h3>
-  
-      <div v-if="posture">
-        <ul>
-          <li>
-             평균 목 각도: {{ posture.average_neck_angle?.toFixed(1) || '정보 없음' }}°
-          </li>
-          <li>
-            최대 목 각도: {{ posture.max_neck_angle?.toFixed(1) || '정보 없음' }}°
-            <span v-if="posture.max_neck_angle >= 135">⚠️ (높음)</span>
-          </li>
-          <li>
-            어깨 상태: {{ posture.shoulder_status || '정보 없음' }}
-            ({{ posture.shoulder_diff?.toFixed(1) || '0.0' }}px)
-          </li>
-        </ul>
-        <p class="feedback-msg">{{ feedbackMessage }}</p>
-      </div>
-  
-      <div v-else class="no-data-msg">
-        😴 최근 측정 데이터가 없습니다. 먼저 측정해보세요!
+  <div>
+    <!-- ⏳ 로딩 중일 때는 아무것도 안 보임 -->
+    <div v-if="!loaded">
+      <!-- 로딩 인디케이터가 필요하다면 여기에 추가 가능 -->
+    </div>
+
+    <!-- 🔴 데이터가 없을 때 -->
+    <div v-else-if="!todayData" class="no-data-box">
+      <p>📷 오늘 측정된 사진이 없습니다. 사진을 촬영해주세요.</p>
+    </div>
+
+    <!-- ✅ 데이터 있을 때 -->
+    <div v-else class="feedback-box">
+      <h4>📅 오늘의 자세 피드백 ({{ formattedDate }})</h4>
+      <ul>
+        <li>• 평균 목 각도: {{ todayData.average_neck_angle.toFixed(1) }}°</li>
+        <li>• 최대 목 각도: {{ todayData.max_neck_angle.toFixed(1) }}°</li>
+        <li>• 어깨 상태: {{ shoulderText }}</li>
+      </ul>
+      <div class="feedback-tag" :class="feedbackClass">
+        <span>✔ {{ feedbackMessage }}</span>
       </div>
     </div>
-  </template>
-  
-  <script>
-  export default {
-    props: ['userId'],
-    data() {
-      return {
-        posture: null,
-      };
-    },
-    watch: {
-      userId(newVal) {
-        if (newVal) {
-          console.log('🟢 userId 감지됨:', newVal);
-          this.fetchLatestPosture();
-        }
+  </div>
+</template>
+
+
+<script>
+import axios from 'axios';
+import { watch, ref, computed } from 'vue';
+
+export default {
+  name: 'TodayFeedback',
+  props: {
+    userId: {
+      type: Number,
+      required: true
+    }
+  },
+  setup(props) {
+    const todayData = ref(null);
+    const loaded = ref(false);
+
+    const fetchTodayData = async () => {
+      if (!props.userId) {
+        console.warn("⚠ userId 없음");
+        return;
       }
-    },
-    computed: {
-      formattedDate() {
-        const measured = this.posture?.measured_at;
-        if (!measured) return '';
-        try {
-          const date = new Date(measured);
-          return new Intl.DateTimeFormat('ko-KR', {
-            year: 'numeric',
-            month: '2-digit',
-            day: '2-digit'
-          }).format(date);
-        } catch (err) {
-          console.warn('⚠️ 날짜 포맷 에러:', err);
-          return '';
-        }
-      },
-      feedbackMessage() {
-        if (!this.posture) return '';
-        const { max_neck_angle, shoulder_status } = this.posture;
-  
-        let msg = '';
-        if (max_neck_angle >= 135) {
-          msg += '👉 최대 목 각도가 높습니다. 거북목에 유의하세요.\n';
-        }
-        if (shoulder_status?.includes('높음')) {
-          msg += '👉 어깨 균형이 맞지 않습니다. 교정 운동을 추천드립니다.';
-        }
-        return msg || '✔️ 현재 자세가 전반적으로 양호합니다!';
+
+      const url = `${import.meta.env.VITE_API_BASE_URL}/api/posture/latest/${props.userId}`;
+      if (!import.meta.env.VITE_API_BASE_URL) {
+        console.warn("⚠️ VITE_API_BASE_URL이 정의되지 않았습니다.");
       }
-    },
-    mounted() {
-      console.log('📥 TodayFeedback mounted. userId:', this.userId);
-      // fetch는 watch에서 처리
-      if (this.userId) {
-        this.fetchLatestPosture(); 
-      }
-    },
-    methods: {
-      async fetchLatestPosture() {
-        if (!this.userId) return;
-        try {
-          const url = `http://210.101.236.158:5000/api/posture/latest/${this.userId}`;
-          console.log('📡 API 호출 주소:', url);
-  
-          const res = await fetch(url);
-          const json = await res.json();
-  
-          console.log('📦 API 응답:', json);
-          if (json.success && json.data) {
-            this.posture = json.data;
-            console.log('✅ posture 저장됨:', this.posture);
-          } else {
-            console.warn('⚠️ posture 데이터 없음 또는 실패');
-          }
-        } catch (err) {
-          console.error('❌ posture 불러오기 실패:', err);
+      console.log("📡 호출 URL:", url);
+
+
+      try {
+        const res = await axios.get(url);
+        console.log("📡 응답:", res.data);
+
+        if (res.data.success && res.data.data) {
+          todayData.value = res.data.data;
+        } else {
+          todayData.value = null;
         }
-      },
-    },
-  };
-  </script>
-  
-  <style scoped>
-.feedback-card {
-  background: #f9f9f9;
-  border: 1px solid #e0e0e0;
-  border-left: 6px solid #42a5f5; /* 강조색 줄 */
-  padding: 20px 24px;
-  margin-bottom: 24px;
+      } catch (err) {
+        console.error("🔥 최신 데이터 요청 실패:", err);
+      } finally {
+        loaded.value = true;
+      }
+    };
+
+
+    watch(() => props.userId, (newVal) => {
+      if (newVal) fetchTodayData();
+    }, { immediate: true });
+
+    const shoulderText = computed(() => {
+      const diff = todayData.value?.shoulder_diff;
+      if (diff == null) return '정보 없음';
+      return diff < 10
+        ? `어깨 수평 (정상) (${diff.toFixed(1)}px)`
+        : `어깨 불균형 (${diff.toFixed(1)}px)`;
+    });
+
+    const feedbackMessage = computed(() =>
+      todayData.value?.average_neck_angle > 135
+        ? '현재 자세가 전체적으로 좋지 않습니다!'
+        : '현재 자세가 전반적으로 양호합니다!'
+    );
+
+    const feedbackClass = computed(() =>
+      todayData.value?.average_neck_angle > 135 ? 'bad' : 'good'
+    );
+
+    const formattedDate = computed(() => {
+      const now = new Date();
+      return `${now.getFullYear()}. ${String(now.getMonth() + 1).padStart(2, '0')}. ${String(now.getDate()).padStart(2, '0')}.`;
+    });
+
+    return {
+      todayData,
+      loaded,
+      shoulderText,
+      feedbackMessage,
+      feedbackClass,
+      formattedDate
+    };
+  }
+};
+</script>
+<style scoped>
+.feedback-box {
+  background-color: #ffffff;
   border-radius: 16px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
-  text-align: center;
-  font-size: 1.05rem;
-  transition: all 0.2s ease-in-out;
+  padding: 24px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+  max-width: 480px;
+  margin: 20px auto;
+  font-family: 'Segoe UI', sans-serif;
+  border: 1px solid #dfefff;
+  text-align: center; /* ✅ 전체 텍스트 중앙 정렬 */
 }
 
-.feedback-card:hover {
-  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.08);
-}
-
-.feedback-card h3 {
-  margin-bottom: 16px;
-  font-size: 1.2rem;
+.feedback-box h4 {
+  font-size: 18px;
+  font-weight: bold;
   color: #1565c0;
-  font-weight: 600;
+  margin-bottom: 12px;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 6px;
 }
 
-.feedback-card ul {
+.feedback-box ul {
   list-style: none;
   padding: 0;
-  margin: 0 auto;
-  display: inline-block;
-  text-align: left;
-  font-size: 1.02rem;
+  margin-bottom: 12px;
 }
 
-.feedback-card li {
-  margin-bottom: 10px;
-  padding-left: 8px;
-  position: relative;
+.feedback-box li {
+  margin-bottom: 8px;
+  font-size: 15px;
+  color: #333;
 }
 
-.feedback-card li::before {
-  content: '•';
-  color: #1976d2;
+.feedback-tag {
+  background-color: #fff8e1;
+  color: #ff6f00;
+  padding: 12px 16px;
   font-weight: bold;
-  position: absolute;
-  left: -12px;
-}
-
-.feedback-msg {
-  margin-top: 14px;
-  padding: 10px 14px;
-  border-radius: 8px;
-  font-weight: bold;
-  color: #b71c1c;
-  background-color: #ffebee;
-  border: 1px solid #ffcdd2;
-  white-space: pre-wrap;
-  line-height: 1.5;
   text-align: center;
+  border-radius: 8px;
+  border: 1px dashed #ffd54f;
+  font-size: 15px;
+  box-shadow: 0 0 0 1px rgba(255, 193, 7, 0.1) inset;
 }
 
-.no-data-msg {
-  margin-top: 16px;
-  font-style: italic;
-  color: #9e9e9e;
-  font-size: 0.95rem;
+
+.feedback-tag.good {
+  background-color: #e8f5e9;
+  color: #2e7d32;
 }
 
-  </style>
-  
+.feedback-tag.bad {
+  background-color: #ffebee;
+  color: #c62828;
+}
+
+.no-data-box {
+  text-align: center;
+  padding: 16px;
+  background-color: #fff3cd;
+  border: 1px solid #ffeeba;
+  border-radius: 10px;
+  color: #856404;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+</style>

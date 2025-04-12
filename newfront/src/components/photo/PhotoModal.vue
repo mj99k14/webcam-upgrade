@@ -35,23 +35,26 @@ export default {
 /* 모달 내부 콘텐츠 스타일 */
 .modal-content {
   position: relative;
+  background-color: white;
+  padding: 16px;
+  border-radius: 16px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+  width: 40vw;           /* ✅ 전체 너비의 50% */
+  height: auto;
+  max-height: 60vh;      /* ✅ 화면 세로 최대 70% */
   display: flex;
-  flex-direction: column;
   align-items: center;
-  background-color: #fff;
-  padding: 20px;
-  border-radius: 10px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  justify-content: center;
+  overflow: hidden;
 }
 
-/* 확대된 이미지 스타일 */
 .modal-image {
-  max-width: 95%;
-  max-height: 95%;
-  border-radius: 10px;
-  object-fit: contain; /* 이미지 비율 유지하며 크기 조정 */
-  transition: transform 0.3s ease-in-out; /* 부드러운 확대 애니메이션 */
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+  border-radius: 12px;
 }
+
 
 /* 클릭 시 이미지 확대 */
 .modal-image:hover {
@@ -61,7 +64,7 @@ export default {
 /* 닫기 버튼 스타일 */
 .close-btn {
   position: absolute;
-  top: 10px; /* 이미지 상단에서 조금 내려놓기 */
+  top: 5px; /* 이미지 상단에서 조금 내려놓기 */
   right: 10px; /* 이미지 오른쪽 끝에 배치 */
   background-color: transparent;
   color: white;

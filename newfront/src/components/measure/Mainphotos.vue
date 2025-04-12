@@ -1,6 +1,4 @@
 <template>
-
-  
     <!-- ✅ 결과 사진 -->
       <div class="result-photo-group-row" v-if="measurementFinished && (bestFrameUrl || worstFrameUrl)">
         <div v-if="bestFrameUrl" class="photo-block" @click="openModal(bestFrameUrl)">
@@ -36,7 +34,9 @@
       <p class="timer-text">⏱ 측정 시간: {{ formattedTime }}
       </p>
     </div>
-    <TodayFeedback v-if="user" :userId="user.user_id" />
+    <TodayFeedback v-if="user && user.user_id && !measurementFinished" :userId="user.user_id" />
+
+
 
     <!-- ✅ 측정 결과 요약 -->
     <div v-if="measurementFinished" class="result-info">
@@ -72,8 +72,33 @@ let pose = null;
 let camera = null;
 
 export default {
-  components: { PhotoModal,TodayFeedback },
-  emits: ['handlePhotoUploaded'],
+  name: 'MainPhotos',
+
+components: {
+  PhotoModal,
+  TodayFeedback,
+},
+
+props: {
+  cameraActive: {
+    type: Boolean,
+    default: false,
+  },
+  bestPhoto: {
+    type: Object,
+    default: () => null,
+  },
+  worstPhoto: {
+    type: Object,
+    default: () => null,
+  },
+},
+
+emits: [
+  'startCamera',
+  'handlePhotoUploaded',
+  'openModal',
+],
   data() {
     return {
       user: JSON.parse(localStorage.getItem("user")),
@@ -500,14 +525,15 @@ button {
 
 /* 🧠 측정 결과 요약 */
 .result-info {
-  margin-top: 40px;
-  background: #ffffff;
-  padding: 28px 24px;
+  background-color: #ffffff;
   border-radius: 16px;
-  max-width: 520px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.07);
-  border: 1px solid #e0e0e0;
-  text-align: left;
+  padding: 24px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+  max-width: 480px; /* 위 박스랑 똑같이 */
+  margin: 20px auto; /* 가운데 정렬 */
+  font-family: 'Segoe UI', sans-serif;
+  border: 1px solid #dfefff;
+  text-align: center; /* 텍스트 중앙 정렬 */
 }
 
 .result-info h3 {
@@ -519,45 +545,47 @@ button {
 }
 
 .stat-item {
-  margin-bottom: 16px;
-  font-size: 17px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+  margin-bottom: 12px;
+  font-size: 15px;
+  display: block;
 }
-
 .label {
   font-weight: bold;
   color: #333;
-  min-width: 160px;
+  display: inline-block;
+  margin-right: 8px;
 }
-
 .value {
-  font-size: 18px;
+  font-size: 15px;
   font-weight: 600;
 }
 .value.blue {
   color: #1565c0;
 }
 
+
 /* ✅ 저장 메시지 */
 .message-wrapper {
-  margin-top: 24px;
-  text-align: center;
+  display: flex;
+  justify-content: center;
+  margin-top: 16px;
 }
 
 .message {
-  background: #e8f5e9;
-  padding: 10px 16px;
-  border-radius: 8px;
+  background-color: #e8f5e9;
   color: #2e7d32;
+  padding: 12px 16px;
   font-weight: bold;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
-  margin: 0 auto 16px auto;
+  font-size: 16px;
+  border-radius: 10px;
+  border: 1px dashed #81c784;
+  box-shadow: inset 0 0 0 1px rgba(76, 175, 80, 0.1);
+  text-align: center;
+  width: 100%;
+  max-width: 440px; /* ✅ 박스 최대 너비 제한 */
 }
+
+
 
 /* 🖼️ 결과 사진 */
 .result-photo-group-row {
