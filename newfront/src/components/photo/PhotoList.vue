@@ -1,85 +1,85 @@
 <template>
   <div class="section-title-wrapper">
-  <div class="section-header">
-    <h2 class="section-title"><span class="emoji">📸</span> 사진 목록</h2>
+    <div class="section-header">
+      <h2 class="section-title"><span class="emoji">📸</span> 사진 목록</h2>
+    </div>
   </div>
-</div>
-     <!-- ✅ 선택한 사진 카드 -->
-     <div v-if="selectedPhoto" class="selected-photo-card" @click="$emit('showPhoto', selectedPhoto)">
-      <h3 class="card-title">📌 선택한 사진</h3>
-      <div class="photo-wrapper">
-        <img
-          :src="`http://210.101.236.158:5000${selectedPhoto.photo_url}`"
-          alt="선택한 사진"
-          class="main-selected-photo"
-        />
-        <p class="shoulder-status-text">
-          🦴 어깨 상태:
-          <span :class="getShoulderClass(selectedPhoto.shoulder_status)">
-            {{ selectedPhoto.shoulder_status || '정보 없음' }}
-          </span>
-        </p>
-      </div>
-    </div>
 
-    <!-- 📅 날짜 필터 -->
-    <div class="date-filter">
-      <label for="filter-date" class="date-label">날짜 필터:</label>
-      <input
-        id="filter-date"
-        type="date"
-        :value="selectedDate"
-        class="date-input"
-        @input="$emit('update:selectedDate', $event.target.value)"
+  <!-- ✅ 선택한 사진 -->
+  <div v-if="selectedPhoto" class="selected-photo-card" @click="$emit('showPhoto', selectedPhoto)">
+    <h3 class="card-title">📌 선택한 사진 <span class="badge">최근 촬영됨</span></h3>
+    <div class="photo-wrapper">
+      <img
+        :src="`http://210.101.236.158:5000${selectedPhoto.photo_url}`"
+        alt="선택한 사진"
+        class="main-selected-photo"
       />
+      <p class="shoulder-status-text">
+        🦴 어깨 상태:
+        <span :class="getShoulderClass(selectedPhoto.shoulder_status)">
+          {{ selectedPhoto.shoulder_status || '정보 없음' }}
+        </span>
+      </p>
     </div>
-    <!-- ▶️ 가장 좋은 자세 -->
-    <div class="section">
-      <div class="section-header" @click="isBestOpen = !isBestOpen">
-        <h3 class="accordion-title">
-          <span>{{ isBestOpen ? '▼' : '▶' }}</span> 가장 좋은 자세 ({{ bestPhotos.length }}장)
-        </h3>
-        <button class="delete-all-btn" @click.stop="deleteAll('best')">전체 삭제</button>
-      </div>
-      <transition name="fade">
-        <div class="scroll-block" v-show="isBestOpen">
-          <div v-for="(photo, idx) in bestPhotos" :key="photo.id" class="photo-entry">
-            <PhotoItem
-              :photo="photo"
-              :index="idx"
-              :selectedPhoto="selectedPhoto"
-              @click="$emit('showPhoto', photo)"
-              @deletePhoto="$emit('deletePhoto', photo.id)"
-            />
-          </div>
+  </div>
+
+  <!-- 📅 날짜 필터 -->
+  <div class="date-filter">
+    <label for="filter-date" class="date-label">날짜 필터:</label>
+    <input
+      id="filter-date"
+      type="date"
+      :value="selectedDate"
+      class="date-input"
+      @input="$emit('update:selectedDate', $event.target.value)"
+    />
+  </div>
+
+  <!-- ▶️ 가장 좋은 자세 -->
+  <div class="section">
+    <div class="section-header" @click="isBestOpen = !isBestOpen">
+      <h3 class="accordion-title">
+        <span>{{ isBestOpen ? '▼' : '▶' }}</span> 가장 좋은 자세 ({{ bestPhotos.length }}장)
+      </h3>
+      <button class="delete-all-btn" @click.stop="deleteAll('best')">전체 삭제</button>
+    </div>
+    <transition name="fade">
+      <div class="scroll-block" v-show="isBestOpen">
+        <div v-for="(photo, idx) in bestPhotos" :key="photo.id" class="photo-entry">
+          <PhotoItem
+            :photo="photo"
+            :index="idx"
+            :selectedPhoto="selectedPhoto"
+            @click="$emit('showPhoto', photo)"
+            @deletePhoto="$emit('deletePhoto', photo.id)"
+          />
         </div>
-      </transition>
-    </div>
-
-    <!-- ▶️ 가장 나쁜 자세 -->
-    <div class="section">
-      <div class="section-header" @click="isWorstOpen = !isWorstOpen">
-        <h3 class="accordion-title">
-          <span>{{ isWorstOpen ? '▼' : '▶' }}</span> 가장 나쁜 자세 ({{ worstPhotos.length }}장)
-        </h3>
-        <button class="delete-all-btn" @click.stop="deleteAll('worst')">전체 삭제</button>
       </div>
-      <transition name="fade">
-        <div class="scroll-block" v-show="isWorstOpen">
-          <div v-for="(photo, idx) in worstPhotos" :key="photo.id" class="photo-entry">
-            <PhotoItem
-              :photo="photo"
-              :index="idx"
-              :selectedPhoto="selectedPhoto"
-              @click="$emit('showPhoto', photo)"
-              @deletePhoto="$emit('deletePhoto', photo.id)"
-            />
-          </div>
-        </div>
-      </transition>
+    </transition>
+  </div>
+
+  <!-- ▶️ 가장 나쁜 자세 -->
+  <div class="section">
+    <div class="section-header" @click="isWorstOpen = !isWorstOpen">
+      <h3 class="accordion-title">
+        <span>{{ isWorstOpen ? '▼' : '▶' }}</span> 가장 나쁜 자세 ({{ worstPhotos.length }}장)
+      </h3>
+      <button class="delete-all-btn" @click.stop="deleteAll('worst')">전체 삭제</button>
     </div>
-
-
+    <transition name="fade">
+      <div class="scroll-block" v-show="isWorstOpen">
+        <div v-for="(photo, idx) in worstPhotos" :key="photo.id" class="photo-entry">
+          <PhotoItem
+            :photo="photo"
+            :index="idx"
+            :selectedPhoto="selectedPhoto"
+            @click="$emit('showPhoto', photo)"
+            @deletePhoto="$emit('deletePhoto', photo.id)"
+          />
+        </div>
+      </div>
+    </transition>
+  </div>
 </template>
 
 <script>
@@ -136,53 +136,42 @@ export default {
 </script>
 
 <style scoped>
-.right {
-  text-align: center;
-}
-
-/* 날짜 필터 */
-.date-filter {
+.section-title-wrapper {
   display: flex;
-  align-items: center;
   justify-content: center;
-  gap: 12px;
-  padding: 16px 24px;
-  margin: 0 auto 24px;
-  background: #f1f8ff;
-  border-radius: 12px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
-  border: 1px solid #cce4ff;
-  max-width: 600px;
+  align-items: center;
+  margin-bottom: 16px;
+}
+.section-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: #1976d2;
+  border-bottom: 3px solid #42a5f5;
+  padding-bottom: 8px;
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
 }
 
-.date-label {
-  font-weight: bold;
-  font-size: 16px;
-}
-
-.date-input {
-  padding: 10px 14px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  font-size: 16px;
-  min-width: 180px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-  transition: border-color 0.2s ease;
-}
-.date-input:focus {
-  border-color: #1976d2;
-  outline: none;
-}
-
-/* 선택한 사진 */
+/* ✅ 선택한 사진 */
 .selected-photo-card {
-  background: #f8f9fa;
+  background: #ffffff;
   padding: 24px;
   border-radius: 12px;
+  border: 2px solid #42a5f5;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-  margin: 30px auto;
+  margin: 30px auto 0;
   text-align: center;
   max-width: 600px;
+}
+
+.badge {
+  font-size: 13px;
+  background-color: #1976d2;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 8px;
+  margin-left: 6px;
 }
 
 .card-title {
@@ -190,13 +179,11 @@ export default {
   margin-bottom: 16px;
   font-weight: bold;
   color: #222;
-  text-align: center;
 }
 
 .photo-wrapper {
   position: relative;
 }
-
 .main-selected-photo {
   width: 100%;
   max-height: 400px;
@@ -204,13 +191,11 @@ export default {
   border-radius: 10px;
   border: 1px solid #ccc;
 }
-
 .shoulder-status-text {
   margin-top: 12px;
   font-weight: bold;
   font-size: 15px;
 }
-
 .shoulder-status-text span {
   padding: 4px 8px;
   border-radius: 6px;
@@ -229,7 +214,40 @@ export default {
   color: #555;
 }
 
-/* 사진 리스트 */
+/* 날짜 필터 */
+.date-filter {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 16px 24px;
+  margin: 0 auto 20px;
+  background: #f1f8ff;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+  border: 1px solid #cce4ff;
+  max-width: 600px;
+  margin-bottom: 28px;
+}
+.date-label {
+  font-weight: bold;
+  font-size: 16px;
+}
+.date-input {
+  padding: 10px 14px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 16px;
+  min-width: 180px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+  transition: border-color 0.2s ease;
+}
+.date-input:focus {
+  border-color: #1976d2;
+  outline: none;
+}
+
+/* 리스트 영역 */
 .section {
   margin-top: 30px;
   text-align: left;
@@ -289,22 +307,12 @@ export default {
   opacity: 0;
   transform: translateY(-8px);
 }
-.section-title-wrapper {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin-bottom: 16px;
+.selected-photo-card {
+  /* 기존 코드 유지하면서 아래만 살짝 여백 줌 */
+  margin: 20px auto 22px; /* ✅ 마지막 0 → 12px */
 }
-
-.section-title {
-  font-size: 22px;
-  font-weight: 700;
-  color: #1976d2;
-  border-bottom: 3px solid #42a5f5;
-  padding-bottom: 8px;
-  display: inline-flex;
-  gap: 8px;
-  align-items: center;
+.photo-list-section {
+  padding-top: 8px; /* 기존보다 살짝 줄이기 or 없애기 */
 }
 
 </style>

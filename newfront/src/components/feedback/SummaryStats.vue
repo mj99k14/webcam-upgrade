@@ -124,8 +124,10 @@ export default {
   border: none;
   max-width: none !important;
 }
-
-
+.card-inner.main {
+  max-width: 100% !important;  /* ✅ 제한 풀기 */
+  width: 100%;
+}
 
 .charts-row {
   display: flex;
@@ -137,8 +139,8 @@ export default {
 
 .chart-box {
   flex: 1;
-  min-width: 280px;
-  max-width: 360px;
+  min-width: 400px;
+  max-width: 600px;
   background: var(--chart-bg);
   padding: 16px 20px;
   border-radius: 16px;

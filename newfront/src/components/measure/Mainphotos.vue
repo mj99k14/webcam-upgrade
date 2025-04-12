@@ -19,12 +19,15 @@
       <h2 class="section-title"><span class="emoji">📊</span> 자세 피드백</h2>
     </div>
     <TodayFeedback v-if="user && user.user_id && !measurementFinished" :userId="user.user_id" />
-
+    
+    <div class="feedback-box" style="margin-bottom: 50px;"></div>
 
     <!-- ✅ 측정 시작 영역 -->
+    <div class="section-wrapper">
     <div class="title-group">
       <h2>거북목 측정</h2>
       <p class="camera-guide">📌 정확한 측정을 위해 카메라는 반드시 사용자의 왼쪽에 설치해주세요.</p>
+
       <div class="button-group" v-if="isCapturing && !measurementFinished">
         <button class="stop-btn" @click="stopCamera">📴 측정 중지</button>
         <button class="complete-btn" @click="finishMeasurement">✅ 측정 완료</button>
@@ -32,37 +35,38 @@
       <button v-else @click="toggleMeasurement" class="start-btn">📸 측정 시작</button>
     </div>
 
-    <!-- ✅ 카메라 및 타이머 영역 -->
-    <div v-show="showMeasurementArea && !measurementFinished" class="measurement-area">
-      <div class="video-canvas">
-        <video ref="video" autoplay muted playsinline></video>
-        <canvas ref="canvas"></canvas>
-      </div>
-      <p class="timer-text">⏱ 측정 시간: {{ formattedTime }}
-      </p>
+  <!-- ✅ 카메라 및 타이머 영역 -->
+  <div v-show="showMeasurementArea && !measurementFinished" class="measurement-area">
+    <div class="video-canvas">
+      <video ref="video" autoplay muted playsinline></video>
+      <canvas ref="canvas"></canvas>
     </div>
+    <p class="timer-text">⏱ 측정 시간: {{ formattedTime }}</p>
+  </div>
 
-    <!-- ✅ 측정 결과 요약 -->
-    <div v-if="measurementFinished" class="result-info">
-      <div class="stat-item">
-        <span class="label">📏 평균 목 각도:</span>
-        <span class="value blue">{{ averageNeck.toFixed(2) }}°</span>
-      </div>
-      <div class="stat-item">
-        <span class="label">🖐️ 최대 목 각도:</span>
-        <span class="value blue">{{ maxNeck.toFixed(2) }}°</span>
-      </div>
-      <div class="stat-item">
-        <span class="label">↕️ 어깨 상태:</span>
-        <span class="value blue">{{ shoulderStatus }} ({{ shoulderDiff }}px)</span>
-      </div>
-      <div class="message">
-        ✅ 측정 결과가 저장되었습니다.
-      </div>
-      <div class="button-center">
-        <button class="restart-btn" @click="restartMeasurement">🔁 다시 측정하기</button>
-      </div>
+  <!-- ✅ 측정 결과 요약 -->
+  <div v-if="measurementFinished" class="result-info">
+    <div class="stat-item">
+      <span class="label">📏 평균 목 각도:</span>
+      <span class="value blue">{{ averageNeck.toFixed(2) }}°</span>
     </div>
+    <div class="stat-item">
+      <span class="label">🖐️ 최대 목 각도:</span>
+      <span class="value blue">{{ maxNeck.toFixed(2) }}°</span>
+    </div>
+    <div class="stat-item">
+      <span class="label">↕️ 어깨 상태:</span>
+      <span class="value blue">{{ shoulderStatus }} ({{ shoulderDiff }}px)</span>
+    </div>
+    <div class="message">
+      ✅ 측정 결과가 저장되었습니다.
+    </div>
+    <div class="button-center">
+      <button class="restart-btn" @click="restartMeasurement">🔁 다시 측정하기</button>
+    </div>
+  </div>
+</div>
+
     </div>
 
 
@@ -579,7 +583,7 @@ button {
 .message {
   background-color: #e8f5e9;
   color: #2e7d32;
-  padding: 12px 16px;
+  padding: 16px 24px;           /* ✅ 상하 16px, 좌우 24px 여백 */
   font-weight: bold;
   font-size: 16px;
   border-radius: 10px;
@@ -587,11 +591,9 @@ button {
   box-shadow: inset 0 0 0 1px rgba(76, 175, 80, 0.1);
   text-align: center;
   width: 100%;
-  max-width: 440px; /* ✅ 박스 최대 너비 제한 */
+  max-width: 550px;             /* ✅ 전체 폭 제한 */
+  margin: 20px auto 0;          /* ✅ 위는 20px, 좌우는 auto로 가운데 정렬 */
 }
-
-
-
 /* 🖼️ 결과 사진 */
 .result-photo-group-row {
   display: flex;
@@ -632,8 +634,17 @@ button {
   width: 100%;  
 }
 
-
-
+.measurement-box {
+  background-color: #ffffff;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+  max-width: 480px;
+  margin: 20px auto;
+  font-family: 'Segoe UI', sans-serif;
+  border: 1px solid #dfefff;
+  text-align: center;
+}
 
 </style>
 
