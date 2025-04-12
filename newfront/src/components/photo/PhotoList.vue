@@ -1,5 +1,9 @@
 <template>
-    <h2>📸 사진 목록</h2>
+  <div class="section-title-wrapper">
+  <div class="section-header">
+    <h2 class="section-title"><span class="emoji">📸</span> 사진 목록</h2>
+  </div>
+</div>
      <!-- ✅ 선택한 사진 카드 -->
      <div v-if="selectedPhoto" class="selected-photo-card" @click="$emit('showPhoto', selectedPhoto)">
       <h3 class="card-title">📌 선택한 사진</h3>
@@ -285,10 +289,22 @@ export default {
   opacity: 0;
   transform: translateY(-8px);
 }
+.section-title-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 16px;
+}
 
-h2 {
-  text-align: center;
-  margin-bottom: 24px;
+.section-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: #1976d2;
+  border-bottom: 3px solid #42a5f5;
+  padding-bottom: 8px;
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
 }
 
 </style>

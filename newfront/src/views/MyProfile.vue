@@ -267,9 +267,13 @@ export default {
   background-color: #eaf4ff;
   padding: 16px;
   border-radius: 24px;
-  box-shadow: inset 0 0 0 1px rgba(0,0,0,0.02);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.02);
   flex: 1;
   max-width: 100%;
+  min-height: 700px; /* ✅ 카드 자체 높이 고정 */
+  display: flex;
+  flex-direction: column;
+  justify-content: stretch;
 }
 
 .card-inner {
@@ -277,6 +281,17 @@ export default {
   border-radius: 16px;
   padding: 24px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  flex: 1; /* ✅ 안쪽 콘텐츠도 채움 */
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+/* 가운데 메인 전용 스타일 */
+.card-inner.main {
+  max-width: 720px;
+  width: 100%;
+  margin: 0 auto;
 }
 
 .user-card {
@@ -284,25 +299,25 @@ export default {
   max-width: 280px;
 }
 
+/* 가운데 카드 비율 */
 .container > .card-wrapper:nth-child(2) {
   flex: 2;
 }
 
+/* 오른쪽도 최소 높이 */
 .container > .card-wrapper:nth-child(3) {
-  flex: 2;
+  flex: 1.2;
 }
+
+/* 요약 통계 카드 */
 .full-width {
   width: 100%;
   margin-top: 24px;
-
-  display: block;
   background-color: #eaf4ff;
   padding: 24px;
   border: 1px solid #cce0f5;
   border-radius: 16px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-
-  /* 👇 아래 이 두 줄 꼭 제거해야 너비 맞음 */
   max-width: none !important;
   margin-left: 0 !important;
   margin-right: 0 !important;
@@ -317,6 +332,20 @@ export default {
   font-weight: 600;
 }
 
+.section-title {
+  font-size: 20px;
+  font-weight: bold;
+  color: #1976d2;
+  display: inline-block;
+  border-bottom: 3px solid #42a5f5;
+  padding-bottom: 4px;
+  margin-bottom: 20px;
+}
+
+.emoji {
+  margin-right: 8px;
+}
+
 @media (max-width: 1000px) {
   .container {
     flex-direction: column;
@@ -325,4 +354,37 @@ export default {
     max-width: 100%;
   }
 }
+
+</style>
+
+<style>
+.section-header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 24px; /* 아래 간격 조절 */
+}
+
+.section-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 24px;
+  font-weight: 700;
+  color: #1976d2;
+  padding-bottom: 6px;
+  border-bottom: 3px solid #42a5f5;
+  line-height: 1.2;
+}
+
+.section-title .emoji {
+  font-size: 22px;
+  vertical-align: middle;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 2px; /* ✅ 이걸로 위치 조정해 */
+}
+
+
 </style>

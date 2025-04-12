@@ -1,4 +1,7 @@
 <template>
+<div class="section-header">
+  <h2 class="section-title"><span class="emoji">🧑‍💻</span> 마이 페이지</h2>
+</div>
   <div class="left">
     <h3>{{ user.name }} 님 환영합니다</h3>
 
@@ -126,5 +129,6 @@ export default {
   margin-bottom: 10px; /* 제목과 캘린더 사이 여백 */
   font-size: 15px;
 }
+
 
 </style>

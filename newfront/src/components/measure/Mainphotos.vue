@@ -1,4 +1,5 @@
 <template>
+    <div class="main-wrapper">
     <!-- ✅ 결과 사진 -->
       <div class="result-photo-group-row" v-if="measurementFinished && (bestFrameUrl || worstFrameUrl)">
         <div v-if="bestFrameUrl" class="photo-block" @click="openModal(bestFrameUrl)">
@@ -13,6 +14,12 @@
 
     <!-- ✅ 확대 모달 -->
     <PhotoModal v-if="modalUrl" :photoUrl="modalUrl" @close="modalUrl = null" />
+
+    <div class="section-header">
+      <h2 class="section-title"><span class="emoji">📊</span> 자세 피드백</h2>
+    </div>
+    <TodayFeedback v-if="user && user.user_id && !measurementFinished" :userId="user.user_id" />
+
 
     <!-- ✅ 측정 시작 영역 -->
     <div class="title-group">
@@ -34,9 +41,6 @@
       <p class="timer-text">⏱ 측정 시간: {{ formattedTime }}
       </p>
     </div>
-    <TodayFeedback v-if="user && user.user_id && !measurementFinished" :userId="user.user_id" />
-
-
 
     <!-- ✅ 측정 결과 요약 -->
     <div v-if="measurementFinished" class="result-info">
@@ -58,6 +62,7 @@
       <div class="button-center">
         <button class="restart-btn" @click="restartMeasurement">🔁 다시 측정하기</button>
       </div>
+    </div>
     </div>
 
 
@@ -529,7 +534,7 @@ button {
   border-radius: 16px;
   padding: 24px;
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
-  max-width: 480px; /* 위 박스랑 똑같이 */
+  max-width: 640px; /* 위 박스랑 똑같이 */
   margin: 20px auto; /* 가운데 정렬 */
   font-family: 'Segoe UI', sans-serif;
   border: 1px solid #dfefff;
@@ -611,6 +616,25 @@ button {
   border: 3px solid #ccc;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
+.main-wrapper {
+  background-color: white;
+  border-radius: 16px;
+  padding: 24px;
+  width: 90%;         /* ✅ 가로 너비를 전체로 */
+  max-width: none;     /* ✅ 최대 너비 제한 없애기 */
+  margin: 0;           /* ✅ 가운데 정렬 제거 */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.card-inner.main {
+  max-width: 720px; /* ✅ 오른쪽 card-inner와 똑같이 */
+  margin: 0 auto; 
+  width: 100%;  
+}
+
+
+
+
 </style>
 
 
