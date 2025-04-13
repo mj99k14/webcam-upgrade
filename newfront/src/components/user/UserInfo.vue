@@ -1,11 +1,12 @@
 <template>
-<div class="section-header">
-  <h2 class="section-title"><span class="emoji">🧑‍💻</span> 마이 페이지</h2>
-</div>
-  <div class="left">
+  <!-- ✅ 카드 전체 -->
+  <div class="white-card">
+    <div class="section-title-wrapper">
+      <h2 class="section-title"><span class="emoji">🧑‍💻</span> 마이 페이지</h2>
+    </div>
+
     <h3>{{ user.name }} 님 환영합니다</h3>
 
-    <!-- 프로필 -->
     <div class="avatar-circle" v-if="!user.profile_image">
       {{ user.name?.slice(0, 2) || '유저' }}
     </div>
@@ -19,13 +20,11 @@
     <p><strong>이름:</strong> {{ user.name || '정보 없음' }}</p>
     <p><strong>이메일:</strong> {{ user.email || '정보 없음' }}</p>
 
-    <!-- 버튼 한 줄 -->
     <div class="button-group">
       <button class="logout" @click="$emit('logout')">로그아웃</button>
       <button class="delete" @click="$emit('deleteAccount')">회원 탈퇴</button>
     </div>
 
-    <!-- 📅 미니 캘린더 -->
     <div class="calendar-section">
       <p class="calendar-title"><strong>📅 이번달 자세</strong></p>
       <MiniCalendar :stats="calendarStats" />
@@ -33,30 +32,54 @@
   </div>
 </template>
 
+
 <script>
-// ✅ 이렇게 되어 있어야 정상
 import MiniCalendar from '../calendar/MiniCalendar.vue';
 
 export default {
   components: { MiniCalendar },
   props: {
     user: { type: Object, required: true },
-    calendarStats: { type: Array, required: false, default: () => [] }
+    calendarStats: { type: Array, default: () => [] }
   }
 };
 </script>
 
 <style scoped>
-.left {
-  flex: 1;
+.white-card {
   background-color: white;
   padding: 24px;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  text-align: center;
+  border-radius: 16px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+  max-width: 600px;
+  margin: 0 auto 32px;
+  box-sizing: border-box;
   font-family: 'Segoe UI', sans-serif;
+  text-align: center;
 }
 
+/* ✅ 제목 스타일 (공통화) */
+.section-title-wrapper {
+  margin-bottom: 16px;
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 22px;
+  font-weight: 700;
+  color: #1976d2;
+  padding-left: 4px;
+  border-bottom: 3px solid #42a5f5;
+}
+
+.section-title .emoji {
+  font-size: 22px;
+  margin-bottom: 2px;
+}
+
+/* ✅ 사용자 정보 */
 .avatar-circle {
   width: 100px;
   height: 100px;
@@ -78,6 +101,7 @@ export default {
   margin: 10px 0;
 }
 
+/* ✅ 버튼 */
 .button-group {
   display: flex;
   justify-content: center;
@@ -105,30 +129,15 @@ export default {
   font-weight: 600;
 }
 
-
-.calendar-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr); /* ✅ 4칸씩 */
-  gap: 6px;
-  margin-top: 10px;
-}
-.day {
-  padding: 6px;
-  text-align: center;
-  border-radius: 6px;
-  font-weight: bold;
-  font-size: 12px;
-  line-height: 1.4;
-}
+/* ✅ 캘린더 */
 .calendar-section {
-  margin-top: 30px; /* 캘린더 위 간격 */
+  margin-top: 30px;
   text-align: center;
 }
 
 .calendar-title {
-  margin-bottom: 10px; /* 제목과 캘린더 사이 여백 */
+  margin-bottom: 10px;
   font-size: 15px;
 }
-
 
 </style>

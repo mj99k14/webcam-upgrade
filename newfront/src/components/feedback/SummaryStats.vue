@@ -1,9 +1,10 @@
 <template>
-  <div class="summary-wrapper" v-if="dailyStats.length > 0">
-    <h3>📊 자세 분석 요약</h3>
+  <div class="white-card" v-if="dailyStats.length > 0">
+    <div class="section-title-wrapper">
+      <h2 class="section-title"><span class="emoji">📊</span> 자세 분석 요약</h2>
+    </div>
 
     <div class="charts-row">
-      <!-- 🦒 목 분석 도넛 차트 -->
       <div class="chart-box">
         <NeckDonut :photos="photos" />
         <div class="analysis-text">
@@ -11,7 +12,6 @@
         </div>
       </div>
 
-      <!-- 🤷 어깨 분석 도넛 차트 -->
       <div class="chart-box">
         <ShoulderDonut :photos="photos" />
         <div class="analysis-text">
@@ -34,6 +34,7 @@
     />
   </div>
 </template>
+
 
 <script>
 import NeckDonut from './NeckDonut.vue';
@@ -109,26 +110,36 @@ export default {
 </script>
 
 <style scoped>
-:root {
-  --main-bg: #eaf4ff;
-  --main-border: #cce0f5;
-  --chart-bg: #f8fbff;
-  --text-color: #333;
+.white-card {
+  background-color: #ffffff;
+  padding: 24px;
+  border-radius: 16px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+  max-width: 1000px;
+  margin: 0 auto 32px;
+  box-sizing: border-box;
 }
 
-.summary-wrapper {
-  width: 100%;
-  padding: 0;
-  margin: 0;
-  background-color: transparent;
-  border: none;
-  max-width: none !important;
+/* 📌 제목 스타일 */
+.section-title-wrapper {
+  margin-bottom: 16px;
 }
-.card-inner.main {
-  max-width: 100% !important;  /* ✅ 제한 풀기 */
-  width: 100%;
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 22px;
+  font-weight: 700;
+  color: #1976d2;
+  padding-left: 4px;
+  border-bottom: 3px solid #42a5f5;
+}
+.section-title .emoji {
+  font-size: 22px;
+  margin-bottom: 2px;
 }
 
+/* 📊 차트 행 */
 .charts-row {
   display: flex;
   justify-content: flex-start;
@@ -141,13 +152,12 @@ export default {
   flex: 1;
   min-width: 400px;
   max-width: 600px;
-  background: var(--chart-bg);
+  background: #f8fbff;
   padding: 16px 20px;
   border-radius: 16px;
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
   transition: box-shadow 0.3s ease;
 }
-
 .chart-box:hover {
   box-shadow: 0 10px 28px rgba(0, 0, 0, 0.1);
 }
@@ -156,6 +166,7 @@ export default {
   margin-top: 12px;
   font-size: 15px;
   font-weight: 500;
-  color: var(--text-color);
+  color: #333;
 }
+
 </style>

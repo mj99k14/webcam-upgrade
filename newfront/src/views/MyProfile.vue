@@ -60,7 +60,6 @@ import PhotoList from '../components/photo/PhotoList.vue';
 import PhotoModal from '../components/photo/PhotoModal.vue';// 사진 관련
 import MainPhotos from '../components/measure/Mainphotos.vue';// 측정 관련
 import SummaryStats from '../components/report/SummaryStats.vue';//  리포트  report
-import TodayFeedback from '../components/feedback/TodayFeedback.vue';
 
 
 
@@ -73,7 +72,7 @@ export default {
     SummaryStats,
     UserSummary,
     PhotoModal,
-    TodayFeedback,
+
   },
   setup() {
     const router = useRouter();
@@ -275,25 +274,19 @@ export default {
   flex-direction: column;
   justify-content: stretch;
 }
-
-.card-inner {
-  background-color: white;
-  border-radius: 16px;
-  padding: 24px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-  flex: 1; /* ✅ 안쪽 콘텐츠도 채움 */
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-}
-
-/* 가운데 메인 전용 스타일 */
 .card-inner.main {
-  max-width: 720px;
+  max-width: 1400px;
   width: 100%;
   margin: 0 auto;
-}
+  padding: 24px;
+  box-sizing: border-box;
 
+  flex-grow: 1;             /* ✅ 남는 공간 채우기 */
+  height: 100%;             /* ✅ 부모 높이만큼 늘리기 */
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
 .user-card {
   flex: none;
   max-width: 280px;
@@ -301,13 +294,18 @@ export default {
 
 /* 가운데 카드 비율 */
 .container > .card-wrapper:nth-child(2) {
-  flex: 2;
+  flex: 2.5;
+  min-height: 1000px;       /* ✅ 파란 배경 높이 늘리기 */
+  display: flex;
+  flex-direction: column;
 }
-
 /* 오른쪽도 최소 높이 */
 .container > .card-wrapper:nth-child(3) {
   flex: 1.2;
+  padding: 24px 32px; /* ✅ 좌우 여백 생김 */
+  box-sizing: border-box; /* ✅ padding 포함 계산 */
 }
+
 
 /* 요약 통계 카드 */
 .full-width {
@@ -355,6 +353,7 @@ export default {
   }
 }
 
+
 </style>
 
 <style>
@@ -362,29 +361,24 @@ export default {
   display: flex;
   justify-content: center;
   align-items: center;
-  margin-bottom: 24px; /* 아래 간격 조절 */
+  margin-top: 32px;
+  margin-bottom: 24px;
 }
 
 .section-title {
+  font-size: 32px;        /* ✅ 기존 24px → 크게 */
+  font-weight: 800;       /* ✅ 더 굵은 bold */
+  color: #1976d2;
+  border-bottom: 3px solid #42a5f5;
+  padding-bottom: 8px;    /* ✅ 아래 간격도 살짝 늘림 */
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  font-size: 24px;
-  font-weight: 700;
-  color: #1976d2;
-  padding-bottom: 6px;
-  border-bottom: 3px solid #42a5f5;
-  line-height: 1.2;
+  gap: 10px;
 }
 
 .section-title .emoji {
-  font-size: 22px;
-  vertical-align: middle;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 2px; /* ✅ 이걸로 위치 조정해 */
+  font-size: 24px;        /* ✅ 아이콘도 약간 키움 */
+  margin-bottom: 2px;
 }
-
 
 </style>
