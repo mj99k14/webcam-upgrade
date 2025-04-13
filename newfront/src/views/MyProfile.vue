@@ -344,16 +344,6 @@ export default {
   margin-right: 8px;
 }
 
-@media (max-width: 1000px) {
-  .container {
-    flex-direction: column;
-  }
-  .container > * {
-    max-width: 100%;
-  }
-}
-
-
 </style>
 
 <style>

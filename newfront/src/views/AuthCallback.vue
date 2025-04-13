@@ -32,13 +32,11 @@ onMounted(async () => {
     const data = await res.json();
 
     if (data.success) {
-      // ✅ 로그인 성공
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
       alert("✅ 로그인 성공!");
       router.push("/myprofile");
     } else if (data.message === "회원가입이 필요합니다.") {
-      // ❗ 회원가입 유도
       const confirmJoin = confirm("등록된 정보가 없습니다. 회원가입 하시겠습니까?");
       if (confirmJoin) {
         router.push({
@@ -70,11 +68,15 @@ onMounted(async () => {
   flex-direction: column;
   align-items: center;
   justify-content: center;
+
   height: 100vh;
+  width: 100vw;
+  padding: 24px;
   text-align: center;
+
+  background-color: #eaf4ff;
   font-family: "Segoe UI", sans-serif;
-  background-color: #f5f8fb;
-  color: #333;
+  color: #2c3e50;
 }
 
 .loader {
@@ -87,8 +89,23 @@ onMounted(async () => {
   margin-bottom: 20px;
 }
 
+h2 {
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+
+p {
+  font-size: 16px;
+  color: #555;
+}
+
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 </style>

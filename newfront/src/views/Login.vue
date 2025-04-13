@@ -45,8 +45,9 @@ const redirectToGoogle = () => {
   border-radius: 16px;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
   text-align: center;
-  width: 100%;
-  max-width: 400px;
+
+  width: 600px;         /* ✅ 넓이 고정 */
+  max-width: none;      /* ✅ 제한 해제 */
 }
 
 .title {

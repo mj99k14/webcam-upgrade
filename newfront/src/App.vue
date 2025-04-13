@@ -54,8 +54,9 @@ body, #app {
   border-radius: 16px;
   padding: 24px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
-  max-width: 600px;
+  max-width: 1000px; /* ✅ 넓게 보이게 변경 */
   width: 100%;
   margin: 0 auto 24px;
 }
+
 </style>
