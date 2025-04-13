@@ -547,7 +547,10 @@ canvas {
   margin: 20px auto;
   border: 1px solid #dfefff;
   text-align: center;
-  max-width: 640px;
+
+  max-width: none;     /* ✅ 제한 없애기 */
+  width: 100%;         /* ✅ 전체 너비 사용 */
+  box-sizing: border-box;
 }
 
 .stat-item {
@@ -611,6 +614,7 @@ canvas {
   box-sizing: border-box;
   width: 100%;
   margin-top: -12px; /* ✅ 위로 조금 당김 */
+  max-width: none;
 }
 
 .mini-section-title {

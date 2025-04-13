@@ -1,71 +1,55 @@
 <template>
-    <div class="chart-box">
-      <h3 class="chart-title">🐢 목 자세 분석</h3>
-      <Doughnut :data="donutData" :options="donutOptions" />
-      <div class="legend">
-        <span class="legend-item"><span class="dot red"></span> 거북목 의심</span>
-        <span class="legend-item"><span class="dot blue"></span> 정상 자세</span>
-      </div>
-    </div>
-  </template>
-  
-  <script>
-  import { Doughnut } from 'vue-chartjs';
-  
-  export default {
-    name: 'NeckDonut',
-    components: { Doughnut },
-    props: ['photos'],
-    computed: {
-      donutData() {
-        const total = this.photos.length;
-        const bad = this.photos.filter(p => (p.average_neck_angle || p.neck_angle) >= 135).length;
-        const good = total - bad;
-        return {
-          labels: ['거북목 의심', '정상 자세'],
-          datasets: [{
-            data: [bad, good],
-            backgroundColor: ['#ff6b6b', '#1e90ff'],
-          }]
-        };
-      },
-      donutOptions() {
-        return {
-          cutout: '65%',
-          responsive: true,
-          plugins: {
-            legend: { display: false }
-          }
-        };
+  <div class="donut-wrapper">
+    <canvas ref="neckChart"></canvas>
+  </div>
+</template>
+
+<script setup>
+import { onMounted, ref } from 'vue';
+import { Chart, DoughnutController, ArcElement, Tooltip, Legend } from 'chart.js';
+
+Chart.register(DoughnutController, ArcElement, Tooltip, Legend);
+
+const props = defineProps(['photos']);
+const neckChart = ref(null);
+
+onMounted(() => {
+  const normalCount = props.photos.filter(p => (p.average_neck_angle ?? p.neck_angle) < 135).length;
+  const badCount = props.photos.length - normalCount;
+
+  const ctx = neckChart.value.getContext('2d');
+  new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: ['거북목 의심', '정상 자세'],
+      datasets: [{
+        data: [badCount, normalCount],
+        backgroundColor: ['#ff7a7a', '#42a5f5']
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false, // ❗ 이거 꼭 넣어야 크기 커짐
+      plugins: {
+        legend: {
+          position: 'bottom'
+        }
       }
     }
-  };
-  </script>
-  
-  <style scoped>
-  .chart-title {
-    text-align: center;
-    font-size: 17px;
-    margin-bottom: 10px;
-  }
-  .legend {
-    display: flex;
-    justify-content: center;
-    gap: 20px;
-    font-size: 13px;
-    margin-top: 8px;
-  }
-  .legend-item {
-    display: flex;
-    align-items: center;
-  }
-  .dot {
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    display: inline-block;
-    margin-right: 6px;
-  }
-  .red { background: #ff6b6b; }
-  .blue { background: #1e90ff; }
-  </style>
+  });
+});
+</script>
+
+<style scoped>
+.donut-wrapper {
+  width: 100%;
+  max-width: 600px;       /* ✅ 원하는 만큼 넓히기 */
+  height: 340px;          /* ✅ 높이 설정 필수 */
+  margin: 0 auto;
+}
+
+canvas {
+  width: 100% !important;
+  height: 100% !important;
+}
+</style>

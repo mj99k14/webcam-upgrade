@@ -43,12 +43,16 @@
     </div>
 
     <!-- ✅ 하단: 요약 통계 -->
-    <div class="full-width">
+      <div class="summary-wrapper">
+    <div class="inner-white-card">
       <SummaryStats :photos="photos" />
     </div>
+  </div>
+
     <PhotoModal v-if="modalPhotoUrl" :photoUrl="modalPhotoUrl" @close="modalPhotoUrl = null" />
   </div>
 </template>
+
 
 <script>
 import axios from "axios";
@@ -249,6 +253,7 @@ export default {
 };
 </script>
 
+
 <style scoped>
 .container {
   display: flex;
@@ -269,57 +274,43 @@ export default {
   box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.02);
   flex: 1;
   max-width: 100%;
-  min-height: 700px; /* ✅ 카드 자체 높이 고정 */
+  min-height: 700px;
   display: flex;
   flex-direction: column;
   justify-content: stretch;
 }
+
 .card-inner.main {
   max-width: 1400px;
   width: 100%;
   margin: 0 auto;
   padding: 24px;
   box-sizing: border-box;
-
-  flex-grow: 1;             /* ✅ 남는 공간 채우기 */
-  height: 100%;             /* ✅ 부모 높이만큼 늘리기 */
+  flex-grow: 1;
+  height: 100%;
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
 }
+
 .user-card {
   flex: none;
   max-width: 280px;
 }
 
-/* 가운데 카드 비율 */
 .container > .card-wrapper:nth-child(2) {
   flex: 2.5;
-  min-height: 1000px;       /* ✅ 파란 배경 높이 늘리기 */
+  min-height: 1000px;
   display: flex;
   flex-direction: column;
 }
-/* 오른쪽도 최소 높이 */
+
 .container > .card-wrapper:nth-child(3) {
   flex: 1.2;
-  padding: 24px 32px; /* ✅ 좌우 여백 생김 */
-  box-sizing: border-box; /* ✅ padding 포함 계산 */
+  padding: 24px 32px;
+  box-sizing: border-box;
 }
 
-
-/* 요약 통계 카드 */
-.full-width {
-  width: 100%;
-  margin-top: 24px;
-  background-color: #eaf4ff;
-  padding: 24px;
-  border: 1px solid #cce0f5;
-  border-radius: 16px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-  max-width: none !important;
-  margin-left: 0 !important;
-  margin-right: 0 !important;
-}
 
 .container h2,
 .container h3 {
@@ -343,7 +334,6 @@ export default {
 .emoji {
   margin-right: 8px;
 }
-
 </style>
 
 <style>
@@ -356,19 +346,38 @@ export default {
 }
 
 .section-title {
-  font-size: 32px;        /* ✅ 기존 24px → 크게 */
-  font-weight: 800;       /* ✅ 더 굵은 bold */
+  font-size: 32px;
+  font-weight: 800;
   color: #1976d2;
   border-bottom: 3px solid #42a5f5;
-  padding-bottom: 8px;    /* ✅ 아래 간격도 살짝 늘림 */
+  padding-bottom: 8px;
   display: inline-flex;
   align-items: center;
   gap: 10px;
 }
 
 .section-title .emoji {
-  font-size: 24px;        /* ✅ 아이콘도 약간 키움 */
+  font-size: 24px;
   margin-bottom: 2px;
 }
+/* ✅ 파란 배경 박스 */
+.summary-wrapper {
+  width: 100%;
+  background-color: #eaf4ff;
+  padding: 48px 24px;
+  box-sizing: border-box;
+}
+
+/* ✅ 흰색 안쪽 박스 */
+.inner-white-card {
+  max-width: 1800px;       /* ✅ 넓게 확장 */
+  margin: 0 auto;
+  padding: 40px 48px;
+  background-color: #ffffff;
+  border-radius: 24px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+  box-sizing: border-box;
+}
+
 
 </style>
