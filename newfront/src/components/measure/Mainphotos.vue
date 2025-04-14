@@ -402,31 +402,25 @@ mounted() {
 <style scoped>
 /* ✅ 공통 제목 스타일 */
 .section-title-wrapper {
-  margin-top: -24px; /* ✅ 위로 올리기 */
-  margin-bottom: 16px;
+  display: flex;
+  justify-content: center;
+  margin: 0 0 12px; /* 위 여백 완전 제거 + 아래도 살짝 줄임 */
 }
 
 .section-title {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 22px;
-  font-weight: 700;
+  font-size: 30px;         /* ✅ 크게! */
+  font-weight: 800;
   color: #1976d2;
-  padding-left: 4px;
-
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
   border-bottom: 3px solid #42a5f5;
-
-  /* ✅ 아래 여백 줄이기 */
-  padding-bottom: 1px;
-  line-height: 1.1;
+  padding-bottom: 4px;
 }
 
-
 .section-title .emoji {
-  font-size: 20px;
-  margin-top: 2px;     /* ✅ 살짝 아래로 내려서 수평 맞추기 */
-  margin-right: 8px;
+  font-size: 24px;
+  margin-bottom: 2px;
 }
 
 /* ✅ 안내 문구 */
@@ -605,15 +599,16 @@ canvas {
   border: 3px solid #ccc;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
+/* ✅ 자세 측정 박스 */
 .main-measure-wrapper {
   background-color: #ffffff;
   border-radius: 24px;
-  padding: 48px;
+  padding: 32px; /* ✅ 기존 48px → 32px으로 줄임 */
   min-height: 900px;
   box-shadow: 0 6px 24px rgba(0, 0, 0, 0.08);
   box-sizing: border-box;
   width: 100%;
-  margin-top: -12px; /* ✅ 위로 조금 당김 */
+  margin-top: -17px; /* ✅ 전체 박스를 살짝 위로 당김 */
   max-width: none;
 }
 

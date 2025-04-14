@@ -1,21 +1,31 @@
+
 <template>
   <div class="summary-box" v-if="dailyStats.length > 0">
     <h3 class="section-title">
       <span class="emoji">📊</span> 자세 분석 요약
     </h3>
 
-    <div class="charts">
-      <div class="chart-container">
-        <NeckDonut :photos="photos" />
-        <div class="analysis-text">
-          <p>🐢 목 자세 분석: {{ dynamicNeckAnalysis }}</p>
+    <!-- ✅ 한 줄에 나란히 정렬 -->
+    <div class="charts-row">
+      <!-- 목 자세 블럭 -->
+      <div class="chart-wrapper">
+        <h2 class="center-title">🐢 목 자세</h2>
+        <div class="chart-container">
+          <NeckDonut :photos="photos" />
+          <div class="analysis-text">
+            <p> 목 자세 분석: {{ dynamicNeckAnalysis }}</p>
+          </div>
         </div>
       </div>
 
-      <div class="chart-container">
-        <ShoulderDonut :photos="photos" />
-        <div class="analysis-text">
-          <p>🤷 어깨 분석: {{ dynamicShoulderAnalysis }}</p>
+      <!-- 어깨 자세 블럭 -->
+      <div class="chart-wrapper">
+        <h2 class="center-title">🤷 어깨 자세</h2>
+        <div class="chart-container">
+          <ShoulderDonut :photos="photos" />
+          <div class="analysis-text">
+            <p> 어깨 분석: {{ dynamicShoulderAnalysis }}</p>
+          </div>
         </div>
       </div>
     </div>
@@ -100,31 +110,30 @@ export default {
 </script>
 
 <style scoped>
-.summary-box {
-  width: 100%;
+.charts-row {
+  display: flex;
+  justify-content: center;
+  gap: 40px;
+  margin-bottom: 32px;
+  flex-wrap: wrap; /* 줄 넘침 방지 */
 }
 
-.section-title {
-  font-size: 20px;
-  font-weight: bold;
-  margin-bottom: 24px;
+.chart-wrapper {
   display: flex;
+  flex-direction: column;
   align-items: center;
 }
 
-.emoji {
-  margin-right: 8px;
-}
-
-.charts {
-  display: flex;
-  justify-content: space-around;
-  gap: 40px;
-  margin-bottom: 32px;
+.center-title {
+  text-align: center;
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 16px;
+  color: #222;
 }
 
 .chart-container {
-  flex: 1;
+  width: 100%;
   min-width: 400px;
   max-width: 600px;
   background: #f8fbff;
@@ -132,15 +141,13 @@ export default {
   border-radius: 16px;
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
 }
+
 .analysis-text {
   margin-top: 24px;
   font-size: 18px;
   font-weight: 600;
   color: #222;
-
-  /* 중앙 정렬 추가 */
   text-align: center;
 }
-
 
 </style>

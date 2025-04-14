@@ -165,20 +165,24 @@ export default {
 
 /* ✅ 제목 스타일 */
 .section-title-wrapper {
-  margin-bottom: 16px;
-}
-.section-title {
   display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 22px;
-  font-weight: 700;
-  color: #1976d2;
-  padding-left: 4px;
-  border-bottom: 3px solid #42a5f5;
+  justify-content: center;
+  margin: 4px 0 20px;  /* ✅ 위 여백 확 줄이기 */
 }
+
+.section-title {
+  font-size: 30px;         /* ✅ 기존 28px → 30px */
+  font-weight: 800;
+  color: #1976d2;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  border-bottom: 3px solid #42a5f5;
+  padding-bottom: 4px;
+}
+
 .section-title .emoji {
-  font-size: 22px;
+  font-size: 24px;
   margin-bottom: 2px;
 }
 
@@ -214,22 +218,30 @@ export default {
 }
 .photo-box {
   width: 100%;
-  height: 240px;
-  padding: 12px;
-  background-color: #f8f9fb;
-  border-radius: 12px;
-  overflow: hidden;
+  max-width: 400px;
+  margin: 0 auto;
+  aspect-ratio: 4 / 3; /* ✅ 항상 4:3 비율 유지 */
+  background-color: #f9f9f9;
+  border-radius: 16px;
+  border: 2px dashed #ccc;
   display: flex;
   justify-content: center;
   align-items: center;
-  margin-bottom: 12px;
+  overflow: hidden;
+  box-sizing: border-box;
 }
+
 .main-selected-photo {
-  max-width: 90%;
-  max-height: 220px;
+  width: 100%;
+  height: 100%;
   object-fit: contain;
-  border-radius: 12px;
-  border: 1px solid #ccc;
+}
+
+.photo-placeholder-text {
+  color: #999;
+  font-size: 14px;
+  text-align: center;
+  padding: 12px;
 }
 
 .photo-placeholder-text {

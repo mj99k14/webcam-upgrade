@@ -60,24 +60,27 @@ export default {
 
 /* ✅ 제목 스타일 (공통화) */
 .section-title-wrapper {
-  margin-bottom: 16px;
+  display: flex;
+  justify-content: center;
+  margin: 4px 0 20px;  /* ✅ 위 여백 확 줄이기 */
 }
 
 .section-title {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 22px;
-  font-weight: 700;
+  font-size: 30px;         /* ✅ 기존 28px → 30px */
+  font-weight: 800;
   color: #1976d2;
-  padding-left: 4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
   border-bottom: 3px solid #42a5f5;
+  padding-bottom: 4px;
 }
 
 .section-title .emoji {
-  font-size: 22px;
+  font-size: 24px;
   margin-bottom: 2px;
 }
+
 
 /* ✅ 사용자 정보 */
 .avatar-circle {
