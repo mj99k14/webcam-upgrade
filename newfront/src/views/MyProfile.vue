@@ -65,9 +65,6 @@ import PhotoModal from '../components/photo/PhotoModal.vue';// 사진 관련
 import MainPhotos from '../components/measure/Mainphotos.vue';// 측정 관련
 import SummaryStats from '../components/report/SummaryStats.vue';//  리포트  report
 
-
-
-
 export default {
   components: {
     UserInfo,
@@ -88,6 +85,9 @@ export default {
     const modalPhotoUrl = ref(null);
     const bestPhoto = ref(null);
     const worstPhoto = ref(null);
+    const bestFrameUrl = ref(null);
+    const worstFrameUrl = ref(null);
+
 
     const openModal = (url) => modalPhotoUrl.value = url;
 
@@ -177,57 +177,107 @@ export default {
   };
 
 
-      const handlePhotoUploaded = async () => {
-        await fetchPhotos();
-      };
+    const handlePhotoUploaded = async () => {
+      await fetchPhotos();
+    };
 
-      const deletePhoto = async (id) => {
-        try {
-          const res = await axios.delete(`http://210.101.236.158:5000/api/photos/${id}`);
-          if (res.data.success) {
-            if (bestPhoto.value?.id === id) bestPhoto.value = null;
-            if (worstPhoto.value?.id === id) worstPhoto.value = null;
-            if (selectedPhoto.value?.id === id) selectedPhoto.value = null;
-            await fetchPhotos();
-          }
-        } catch (err) {
-          console.error("🚨 사진 삭제 오류:", err);
+    const deletePhoto = async (id) => {
+      try {
+        const res = await axios.delete(`http://210.101.236.158:5000/api/photos/${id}`);
+        if (res.data.success) {
+          // ✅ 우선 로컬 상태 초기화
+          if (bestPhoto.value?.id === id) bestPhoto.value = null;
+          if (worstPhoto.value?.id === id) worstPhoto.value = null;
+          if (selectedPhoto.value?.id === id) selectedPhoto.value = null;
+
+          // ✅ 사진 목록 완전히 반영된 후 fetchLatestPosture 실행
+          await fetchPhotos(); // 먼저 갱신하고
+
+          // ⏱️ 살짝 텀 두고 실행 (Vue 반응성 보장용)
+          setTimeout(async () => {
+            await fetchLatestPosture();
+
+            const remainingIds = photos.value.map(p => p.id);
+            if (!remainingIds.includes(bestPhoto.value?.id)) bestPhoto.value = null;
+            if (!remainingIds.includes(worstPhoto.value?.id)) worstPhoto.value = null;
+          }, 50);
         }
-      };
+      } catch (err) {
+        console.error("🚨 사진 삭제 오류:", err);
+      }
+    };
 
-    const showPhoto = (photo, openModal = true) => {
-      selectedPhoto.value = photo;
-      if (openModal && photo?.photo_url) {
-        modalPhotoUrl.value = `http://210.101.236.158:5000${photo.photo_url}`;
+    const fetchLatestPosture = async () => {
+      try {
+        const res = await axios.get(`http://210.101.236.158:5000/api/posture/latest/${user.value.id}`);
+        if (res.data.success && res.data.data) {
+          const posture = res.data.data;
+          const currentIds = photos.value.map(p => p.id);
+
+          bestPhoto.value = currentIds.includes(posture.best_photo_id)
+            ? photos.value.find(p => p.id === posture.best_photo_id)
+            : null;
+
+          worstPhoto.value = currentIds.includes(posture.worst_photo_id)
+            ? photos.value.find(p => p.id === posture.worst_photo_id)
+            : null;
+
+          // ✅ 여기 꼭 추가해야 해!!
+          bestFrameUrl.value = bestPhoto.value ? bestPhoto.value.photo_url : null;
+          worstFrameUrl.value = worstPhoto.value ? worstPhoto.value.photo_url : null;
+        } else {
+          bestPhoto.value = null;
+          worstPhoto.value = null;
+          bestFrameUrl.value = null;
+          worstFrameUrl.value = null;
+        }
+      } catch (err) {
+        console.error("❌ 최신 자세 결과 불러오기 실패", err);
+        bestPhoto.value = null;
+        worstPhoto.value = null;
+        bestFrameUrl.value = null;
+        worstFrameUrl.value = null;
       }
     };
 
 
-    const deleteAccount = async () => {
-      if (confirm("정말 회원 탈퇴를 진행하시겠습니까?")) {
-        try {
-          const res = await axios.delete(`http://210.101.236.158:5000/api/user/delete/${user.value.id}`);
-          if (res.data.success) {
-            localStorage.removeItem("token");
-            router.push("/login");
-          }
-        } catch {
-          alert("회원 탈퇴 중 오류 발생");
+      
+  const showPhoto = (photo, openModal = true) => {
+    selectedPhoto.value = photo;
+    if (openModal && photo?.photo_url) {
+      modalPhotoUrl.value = `http://210.101.236.158:5000${photo.photo_url}`;
+    }
+  };
+
+
+  const deleteAccount = async () => {
+    if (confirm("정말 회원 탈퇴를 진행하시겠습니까?")) {
+      try {
+        const res = await axios.delete(`http://210.101.236.158:5000/api/user/delete/${user.value.id}`);
+        if (res.data.success) {
+          localStorage.removeItem("token");
+          router.push("/login");
         }
+      } catch {
+        alert("회원 탈퇴 중 오류 발생");
       }
-    };
+    }
+  };
 
-    const logout = () => {
-      localStorage.removeItem("token");
-      router.push("/login");
-    };
 
-    const startCamera = () => cameraActive.value = true;
 
-    onMounted(async () => {
-      await fetchUser();
-      selectedDate.value = toKoreanDate(new Date());
-    });
+
+  const logout = () => {
+    localStorage.removeItem("token");
+    router.push("/login");
+  };
+
+  const startCamera = () => cameraActive.value = true;
+
+  onMounted(async () => {
+    await fetchUser();
+    selectedDate.value = toKoreanDate(new Date());
+  });
 
     return {
       user,
@@ -247,12 +297,14 @@ export default {
       filteredPhotos,
       modalPhotoUrl,
       openModal,
-      calendarStats
+      calendarStats,
+      fetchLatestPosture,
+      bestFrameUrl,
+      worstFrameUrl
     };
   }
 };
 </script>
-
 
 <style scoped>
 .container {

@@ -8,15 +8,16 @@
 
     <!-- ✅ 결과 사진 -->
     <div class="result-photo-group-row" v-if="measurementFinished && (bestFrameUrl || worstFrameUrl)">
-      <div v-if="bestFrameUrl" class="photo-block" @click="openModal(bestFrameUrl)">
-        <p>✅ 가장 좋은 자세 ({{ bestNeckAngle }}°)</p>
-        <img :src="bestFrameUrl" alt="좋은 자세" />
-      </div>
-      <div v-if="worstFrameUrl" class="photo-block" @click="openModal(worstFrameUrl)">
-        <p>⚠️ 가장 나쁜 자세 ({{ worstNeckAngle }}°)</p>
-        <img :src="worstFrameUrl" alt="나쁜 자세" />
-      </div>
-    </div>
+  <div v-if="bestFrameUrl" class="photo-block" @click="openModal(bestFrameUrl)">
+    <p>✅ 가장 좋은 자세 ({{ bestNeckAngle }}°)</p>
+    <img :src="bestFrameUrl" alt="좋은 자세" />
+  </div>
+  <div v-if="worstFrameUrl" class="photo-block" @click="openModal(worstFrameUrl)">
+    <p>⚠️ 가장 나쁜 자세 ({{ worstNeckAngle }}°)</p>
+    <img :src="worstFrameUrl" alt="나쁜 자세" />
+  </div>
+</div>
+
 
     <PhotoModal v-if="modalUrl" :photoUrl="modalUrl" @close="modalUrl = null" />
     <p class="mini-section-title">📷 거북목 & 어깨 측정</p>
@@ -66,7 +67,6 @@
 
 <script>
 import PhotoModal from '../photo/PhotoModal.vue';
-
 import { nextTick } from 'vue';
 
 let pose = null;
@@ -74,10 +74,8 @@ let camera = null;
 
 export default {
 name: 'MainPhotos',
-
 components: {
 PhotoModal,
-
 },
 
 props: {
@@ -123,6 +121,8 @@ data() {
     modalUrl: null,
     shoulderStatus: '',
     shoulderDiff: 0,
+    bestPhotoLocal: this.bestPhoto,
+    worstPhotoLocal: this.worstPhoto
   };
 },
 computed: {
@@ -131,7 +131,14 @@ computed: {
     const sec = String(this.elapsedSeconds % 60).padStart(2, '0');
     return `${min}:${sec}`;
   },
+  hasBestPhoto() {
+    return this.bestPhoto !== null;
+  },
+  hasWorstPhoto() {
+    return this.worstPhoto !== null;
+  }
 },
+
 methods: {
   toggleMeasurement() {
     alert("⚠️ 카메라는 반드시 사용자의 왼쪽에 설치해주세요!");
@@ -240,8 +247,6 @@ methods: {
     this.resetMeasurementState();
     return;
   }
-
-
     // 📏 평균/최대 목 각도 계산
     const avg = this.neckAngles.reduce((a, b) => a + b, 0) / this.neckAngles.length;
     const max = Math.max(...this.neckAngles);
@@ -365,8 +370,6 @@ methods: {
     return null;
   }
 },
-
-
   restartMeasurement() {
     this.resetMeasurementState();
     setTimeout(() => this.startCamera(), 100);
@@ -396,7 +399,36 @@ mounted() {
     loadScript('https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js'),
     loadScript('https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js'),
   ]);
+
+  // ✅ 여기에 추가!
+  this.$watch('bestPhoto', (newVal) => {
+  this.bestPhotoLocal = newVal;
+  if (!newVal) {
+    console.log("❌ bestPhoto 없음 → bestFrameUrl 초기화");
+    this.bestFrameUrl = '';
+  }
+  if (!newVal && !this.worstPhoto) {
+    console.log("🔥 모든 측정 사진 삭제됨 → measurementFinished 초기화");
+    this.measurementFinished = false;
+  }
+});
+
+this.$watch('worstPhoto', (newVal) => {
+  this.worstPhotoLocal = newVal;
+  if (!newVal) {
+    console.log("❌ worstPhoto 없음 → worstFrameUrl 초기화");
+    this.worstFrameUrl = '';
+  }
+  if (!newVal && !this.bestPhoto) {
+    console.log("🔥 모든 측정 사진 삭제됨 → measurementFinished 초기화");
+    this.measurementFinished = false;
+  }
+});
+
+
+
 },
+
 };
 </script>
 <style scoped>

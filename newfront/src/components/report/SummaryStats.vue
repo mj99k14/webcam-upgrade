@@ -1,32 +1,16 @@
-
 <template>
-  <div class="summary-box" v-if="dailyStats.length > 0">
+  <div class="summary-box" v-if="photos.length > 0">
     <h3 class="section-title">
       <span class="emoji">📊</span> 자세 분석 요약
     </h3>
 
-    <!-- ✅ 한 줄에 나란히 정렬 -->
-    <div class="charts-row">
-      <!-- 목 자세 블럭 -->
-      <div class="chart-wrapper">
-        <h2 class="center-title">🐢 목 자세</h2>
-        <div class="chart-container">
-          <NeckDonut :photos="photos" />
-          <div class="analysis-text">
-            <p> 목 자세 분석: {{ dynamicNeckAnalysis }}</p>
-          </div>
-        </div>
+    <div class="charts">
+      <div class="chart-container">
+        <NeckDonut :photos="photos" />
       </div>
 
-      <!-- 어깨 자세 블럭 -->
-      <div class="chart-wrapper">
-        <h2 class="center-title">🤷 어깨 자세</h2>
-        <div class="chart-container">
-          <ShoulderDonut :photos="photos" />
-          <div class="analysis-text">
-            <p> 어깨 분석: {{ dynamicShoulderAnalysis }}</p>
-          </div>
-        </div>
+      <div class="chart-container">
+        <ShoulderDonut :photos="photos" />
       </div>
     </div>
 
@@ -41,6 +25,8 @@
       :highAngleRatio="highAngleRatio"
       :shoulderAvg="overallShoulderAvg"
       :lastTaken="lastTaken"
+      :maxNeckAngle="maxNeckAngle"
+      :shoulderRatio="shoulderRatio"
     />
   </div>
 </template>
@@ -91,49 +77,55 @@ export default {
       const last = new Date(this.photos[this.photos.length - 1].measured_at || this.photos[this.photos.length - 1].uploaded_at);
       return `${last.getMonth() + 1}월 ${last.getDate()}일 ${last.getHours()}:${last.getMinutes().toString().padStart(2, '0')}`;
     },
-    dynamicNeckAnalysis() {
-      if (this.highAngleRatio >= 50) {
-        return `${this.highAngleRatio}% 거북목 의심`;
-      } else {
-        return `${this.highAngleRatio}% 정상`;
-      }
+    maxNeckAngle() {
+      const angles = this.photos.map(p => p.average_neck_angle || p.neck_angle).filter(Boolean);
+      return angles.length ? Math.max(...angles) : 0;
     },
-    dynamicShoulderAnalysis() {
-      if (this.overallShoulderAvg > 30) {
-        return '어깨 기울기 심각';
-      } else {
-        return '어깨 기울기 정상';
-      }
+    shoulderRatio() {
+      const left = this.photos.filter(p => 
+        p.shoulder_status === 'left_high' || p.shoulder_status === '왼쪽 어깨가 높음'
+      ).length;
+      const right = this.photos.filter(p => 
+        p.shoulder_status === 'right_high' || p.shoulder_status === '오른쪽 어깨가 높음'
+      ).length;
+      const total = left + right;
+      if (total === 0) return { left: 0, right: 0 };
+      return {
+        left: Math.round((left / total) * 100),
+        right: Math.round((right / total) * 100)
+      };
     }
   }
 };
 </script>
 
 <style scoped>
-.charts-row {
-  display: flex;
-  justify-content: center;
-  gap: 40px;
-  margin-bottom: 32px;
-  flex-wrap: wrap; /* 줄 넘침 방지 */
+.summary-box {
+  width: 100%;
 }
 
-.chart-wrapper {
+.section-title {
+  font-size: 20px;
+  font-weight: bold;
+  margin-bottom: 24px;
   display: flex;
-  flex-direction: column;
   align-items: center;
 }
 
-.center-title {
-  text-align: center;
-  font-size: 24px;
-  font-weight: bold;
-  margin-bottom: 16px;
-  color: #222;
+.emoji {
+  margin-right: 8px;
+}
+
+.charts {
+  display: flex;
+  justify-content: space-around;
+  gap: 40px;
+  margin-bottom: 32px;
+  flex-wrap: wrap;
 }
 
 .chart-container {
-  width: 100%;
+  flex: 1;
   min-width: 400px;
   max-width: 600px;
   background: #f8fbff;
@@ -141,13 +133,4 @@ export default {
   border-radius: 16px;
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
 }
-
-.analysis-text {
-  margin-top: 24px;
-  font-size: 18px;
-  font-weight: 600;
-  color: #222;
-  text-align: center;
-}
-
 </style>
