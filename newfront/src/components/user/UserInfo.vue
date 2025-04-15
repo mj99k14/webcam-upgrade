@@ -1,13 +1,13 @@
 <template>
-  <!-- ✅ 카드 전체 -->
-  <div class="white-card">
+  <div class="card-wrapper">
     <div class="section-title-wrapper">
       <h2 class="section-title"><span class="emoji">🧑‍💻</span> 마이 페이지</h2>
     </div>
 
     <h3>{{ user.name }} 님 환영합니다</h3>
 
-    <div class="avatar-circle" v-if="!user.profile_image">
+    <!-- ✅ 프로필 사진 or 이니셜 -->
+    <div class="user-avatar" v-if="!user.profile_image">
       {{ user.name?.slice(0, 2) || '유저' }}
     </div>
     <img
@@ -17,36 +17,41 @@
       class="profile-img"
     />
 
+    <!-- ✅ 사용자 정보 -->
     <p><strong>이름:</strong> {{ user.name || '정보 없음' }}</p>
     <p><strong>이메일:</strong> {{ user.email || '정보 없음' }}</p>
 
+    <!-- ✅ 버튼 -->
     <div class="button-group">
       <button class="logout" @click="$emit('logout')">로그아웃</button>
       <button class="delete" @click="$emit('deleteAccount')">회원 탈퇴</button>
     </div>
 
+    <!-- ✅ 캘린더 -->
     <div class="calendar-section">
       <p class="calendar-title"><strong>📅 이번달 자세</strong></p>
-      <MiniCalendar :stats="calendarStats" />
+      <MiniCalendar
+        :stats="calendarStats"
+        @dateSelected="$emit('selectDate', $event)" />
     </div>
   </div>
 </template>
 
+<script setup>
+import MiniCalendar from '../calendar/MiniCalendar.vue'
 
-<script>
-import MiniCalendar from '../calendar/MiniCalendar.vue';
-
-export default {
-  components: { MiniCalendar },
-  props: {
-    user: { type: Object, required: true },
-    calendarStats: { type: Array, default: () => [] }
+const props = defineProps({
+  user: Object,
+  calendarStats: {
+    type: Array,
+    default: () => []
   }
-};
+})
+const emit = defineEmits(['logout', 'deleteAccount', 'selectDate'])
 </script>
 
 <style scoped>
-.white-card {
+.card-wrapper {
   background-color: white;
   padding: 24px;
   border-radius: 16px;
@@ -58,15 +63,15 @@ export default {
   text-align: center;
 }
 
-/* ✅ 제목 스타일 (공통화) */
+/* ✅ 제목 */
 .section-title-wrapper {
   display: flex;
   justify-content: center;
-  margin: 4px 0 20px;  /* ✅ 위 여백 확 줄이기 */
+  margin: 4px 0 20px;
 }
 
 .section-title {
-  font-size: 30px;         /* ✅ 기존 28px → 30px */
+  font-size: 30px;
   font-weight: 800;
   color: #1976d2;
   display: inline-flex;
@@ -81,9 +86,8 @@ export default {
   margin-bottom: 2px;
 }
 
-
-/* ✅ 사용자 정보 */
-.avatar-circle {
+/* ✅ 아바타 */
+.user-avatar {
   width: 100px;
   height: 100px;
   margin: 10px auto;
@@ -142,5 +146,4 @@ export default {
   margin-bottom: 10px;
   font-size: 15px;
 }
-
 </style>

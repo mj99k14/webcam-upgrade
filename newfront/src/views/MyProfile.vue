@@ -8,12 +8,13 @@
           :calendarStats="calendarStats"
           @logout="logout"
           @deleteAccount="deleteAccount"
+          @selectDate="handleDateSelect" 
         />
         <UserSummary :photos="photos" />
       </div>
     </div>
 
-    <!-- ✅ 가운데: 측정 영역 (두겹 구조 유지) -->
+    <!-- ✅ 가운데: 측정 영역 -->
     <div class="card-wrapper">
       <div class="card-inner main">
         <MainPhotos
@@ -27,7 +28,7 @@
       </div>
     </div>
 
-    <!-- ✅ 오른쪽: 사진 목록 (중복 제거된 두겹 구조) -->
+    <!-- ✅ 오른쪽: 사진 목록 -->
     <div class="card-wrapper">
       <div class="card-inner">
         <PhotoList
@@ -43,15 +44,26 @@
     </div>
 
     <!-- ✅ 하단: 요약 통계 -->
-      <div class="summary-wrapper">
-    <div class="inner-white-card">
-      <SummaryStats :photos="photos" />
+    <div class="summary-wrapper">
+      <div class="inner-white-card">
+        <SummaryStats :photos="photos" />
+      </div>
     </div>
-  </div>
 
+    <!-- ✅ 사진 모달 -->
     <PhotoModal v-if="modalPhotoUrl" :photoUrl="modalPhotoUrl" @close="modalPhotoUrl = null" />
-  </div>
+
+    <!-- ✅ 날짜별 요약 모달 (여기 안에 있어야 함!) -->
+    <AngleTrendModal
+      v-if="showTrendModal"
+      :selectedDate="selectedDate"
+      @close="showTrendModal = false"
+    />
+
+
+  </div> 
 </template>
+
 
 
 <script>
@@ -64,6 +76,8 @@ import PhotoList from '../components/photo/PhotoList.vue';
 import PhotoModal from '../components/photo/PhotoModal.vue';// 사진 관련
 import MainPhotos from '../components/measure/Mainphotos.vue';// 측정 관련
 import SummaryStats from '../components/report/SummaryStats.vue';//  리포트  report
+import AngleTrendModal from '../components/report/AngleTrendModal.vue'
+
 
 export default {
   components: {
@@ -73,6 +87,7 @@ export default {
     SummaryStats,
     UserSummary,
     PhotoModal,
+    AngleTrendModal
 
   },
   setup() {
@@ -87,6 +102,13 @@ export default {
     const worstPhoto = ref(null);
     const bestFrameUrl = ref(null);
     const worstFrameUrl = ref(null);
+
+    const showTrendModal = ref(false); // ✅ 모달 상태 관리
+
+    const handleDateSelect = (date) => {
+      selectedDate.value = date;
+      showTrendModal.value = true; // ✅ 클릭하면 모달 띄움!
+    };
 
 
     const openModal = (url) => modalPhotoUrl.value = url;
@@ -300,7 +322,11 @@ export default {
       calendarStats,
       fetchLatestPosture,
       bestFrameUrl,
-      worstFrameUrl
+      worstFrameUrl,
+      handleDateSelect,
+      showTrendModal, 
+      selectedDate,
+      handleDateSelect,
     };
   }
 };

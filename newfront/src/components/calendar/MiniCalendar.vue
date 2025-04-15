@@ -1,233 +1,96 @@
 <template>
-  <div class="mini-calendar">
-    <div class="calendar-header">
-      <button @click="prevMonth">◀️</button>
-      <span>{{ year }}년 {{ month + 1 }}월</span>
-      <button @click="nextMonth">▶️</button>
+  <div class="calendar-wrapper">
+    <!-- 요일 헤더 -->
+    <div class="calendar-grid header">
+      <div v-for="day in daysOfWeek" :key="day" class="calendar-cell header-cell">
+        {{ day }}
+      </div>
     </div>
 
-    <div class="calendar-grid">
+    <!-- 날짜들 -->
+    <div class="calendar-grid body">
       <div
-        class="day-label"
-        v-for="label in ['일','월','화','수','목','금','토']"
-        :key="label"
-      >
-        {{ label }}
-      </div>
-
-      <div
-        v-for="(cell, index) in calendarCells"
+        v-for="(date, index) in paddedDates"
         :key="index"
-        class="day-cell-wrapper"
+        class="calendar-cell"
+        :class="{ empty: !date, selected: date === selectedDate }"
+        @click="date && emit('dateSelected', fullDate(date))"
       >
-        <div
-          class="day-cell"
-          :class="[
-            cell.isCurrentMonth
-              ? (cell.status === 'bad'
-                  ? 'red'
-                  : cell.status === 'good'
-                  ? 'green'
-                  : '')
-              : 'disabled',
-            getDayClass(index)
-          ]"
-          :title="cell.status ? `${cell.date} - ${cell.status === 'bad' ? '거북목' : '정상'}` : ''"
-        >
-          <span :class="{ today: cell.isToday }">{{ cell.day }}</span>
-        </div>
+        {{ date }}
       </div>
     </div>
   </div>
 </template>
 
-<script>
-export default {
-  name: 'MiniCalendar',
-  props: {
-    stats: Array,
-    today: String // ❌ props 받아서 정확한 오늘 날짜 활용
-  },
-  data() {
-    const now = this.getKoreaDate();
-    return {
-      year: now.getFullYear(),
-      month: now.getMonth(),
-    };
-  },
-  computed: {
-    dateStatusMap() {
-      const map = {};
-      this.stats?.forEach(s => {
-        map[s.date] = s.status;
-      });
-      return map;
-    },
-    calendarCells() {
-      const firstDay = new Date(this.year, this.month, 1);
-      const startDayOfWeek = firstDay.getDay();
-      const daysInMonth = new Date(this.year, this.month + 1, 0).getDate();
-      const prevMonthDays = new Date(this.year, this.month, 0).getDate();
+<script setup>
+import { computed } from 'vue'
 
-      const cells = [];
+const props = defineProps({
+  selectedDate: String,
+})
 
-      // 이전 달
-      for (let i = startDayOfWeek - 1; i >= 0; i--) {
-        const d = new Date(this.year, this.month - 1, prevMonthDays - i);
-        cells.push({
-          day: d.getDate(),
-          date: this.formatDate(d),
-          isCurrentMonth: false,
-          isToday: false,
-        });
-      }
+const emit = defineEmits(['dateSelected'])
 
-      // 이보다 달
-      for (let i = 1; i <= daysInMonth; i++) {
-        const d = new Date(this.year, this.month, i);
-        const iso = this.formatDate(d);
-        cells.push({
-          day: i,
-          date: iso,
-          isCurrentMonth: true,
-          isToday: iso === this.today,
-          status: this.dateStatusMap[iso] || null,
-        });
-      }
+// ✅ 2025년 4월 기준
+const year = 2025
+const month = 3 // 3 = 4월 (0부터 시작)
 
-      // 다음 달
-      while (cells.length % 7 !== 0) {
-        const d = new Date(this.year, this.month + 1, cells.length - daysInMonth - startDayOfWeek + 1);
-        cells.push({
-          day: d.getDate(),
-          date: this.formatDate(d),
-          isCurrentMonth: false,
-          isToday: false,
-        });
-      }
+const daysOfWeek = ['일', '월', '화', '수', '목', '금', '토']
 
-      return cells;
-    }
-  },
-  methods: {
-    prevMonth() {
-      if (this.month === 0) {
-        this.year--;
-        this.month = 11;
-      } else {
-        this.month--;
-      }
-    },
-    nextMonth() {
-      if (this.month === 11) {
-        this.year++;
-        this.month = 0;
-      } else {
-        this.month++;
-      }
-    },
-    getDayClass(index) {
-      const dayOfWeek = index % 7;
-      return dayOfWeek === 0 || dayOfWeek === 6 ? 'weekend' : '';
-    },
-    formatDate(date) {
-      const utc = date.getTime();
-      const koreaOffset = 9 * 60 * 60 * 1000;
-      const koreanDate = new Date(utc + koreaOffset);
+// 📌 날짜 생성
+const daysInMonth = new Date(year, month + 1, 0).getDate()
+const firstDay = new Date(year, month, 1).getDay() // 4월 1일 요일 (0=일, 1=월 ...)
 
-      const y = koreanDate.getFullYear();
-      const m = String(koreanDate.getMonth() + 1).padStart(2, '0');
-      const d = String(koreanDate.getDate()).padStart(2, '0');
-      return `${y}-${m}-${d}`;
-    },
-    getKoreaDate() {
-      const now = new Date();
-      const offset = now.getTimezoneOffset() * 60000;
-      return new Date(now.getTime() - offset + 9 * 60 * 60 * 1000);
-    }
+// 📌 앞에 빈 칸 + 날짜 배열
+const paddedDates = computed(() => {
+  const dates = Array(firstDay).fill(null)
+  for (let i = 1; i <= daysInMonth; i++) {
+    dates.push(i)
   }
-};
+  return dates
+})
+
+// ✅ 날짜를 '2025-04-03' 형식으로 포맷
+function fullDate(day) {
+  const m = (month + 1).toString().padStart(2, '0')
+  const d = day.toString().padStart(2, '0')
+  return `${year}-${m}-${d}`
+}
 </script>
 
 <style scoped>
-.mini-calendar {
-  background: #f4f8ff;
-  border-radius: 10px;
-  padding: 12px;
-  margin-top: 20px;
-  font-size: 14px;
-  box-shadow: 0 1px 5px rgba(0,0,0,0.05);
-}
-
-.calendar-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 10px;
-  font-weight: bold;
-}
-
-.calendar-header button {
-  background-color: transparent;
-  border: none;
-  font-size: 16px;
-  cursor: pointer;
+.calendar-wrapper {
+  width: 100%;
 }
 
 .calendar-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 6px;
-}
-
-.day-label {
-  font-weight: bold;
+  gap: 4px;
   text-align: center;
-  color: #555;
-  font-size: 13px;
 }
 
-.day-cell-wrapper {
-  position: relative;
-}
-
-.day-cell {
-  height: 42px;
+.calendar-cell {
+  padding: 8px 0;
   border-radius: 8px;
-  text-align: center;
-  line-height: 40px;
-  font-size: 13px;
+  background-color: #f9f9f9;
   font-weight: bold;
-  background-color: #fff;
-  position: relative;
+  cursor: pointer;
 }
 
-.red {
-  background-color: #ff9e9e;
-  color: #fff;
+.calendar-cell.selected {
+  background-color: #4caf50;
+  color: white;
 }
 
-.green {
-  background-color: #86efac;
-  color: #000;
+.calendar-cell.empty {
+  background-color: transparent;
+  cursor: default;
 }
 
-.disabled {
-  opacity: 0.3;
-}
-
-.weekend {
-  font-style: italic;
-}
-
-.today {
-  display: inline-block;
-  padding: 2px 6px;
-  border: 2px solid #2563eb;
-  border-radius: 50%;
-  box-shadow: 0 0 4px #3b82f6;
-  background-color: #fff;
-  z-index: 2;
-  position: relative;
+.header-cell {
+  background-color: transparent;
+  font-weight: 600;
+  color: #555;
 }
 </style>
