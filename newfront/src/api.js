@@ -41,4 +41,16 @@ export const deletePhoto = async (photoId) => {
     return await API.delete(`/photos/${photoId}`);
 };
 
+
+// ✅ : 날짜별 목각도 요약
+export const getAngleTrend = async (user_id, date) => {
+    return await API.get('/posture/angle-trend', {
+        params: { user_id, date }
+    });
+};
+
+
+
+
+
 export default API;

@@ -8,7 +8,11 @@
           :calendarStats="calendarStats"
           @logout="logout"
           @deleteAccount="deleteAccount"
-          @selectDate="handleDateSelect" 
+        />
+        <MiniCalendar
+          :selectedDate="selectedDate"
+          :stats="calendarStats" 
+          @dateSelected="handleCalendarClick"
         />
         <UserSummary :photos="photos" />
       </div>
@@ -35,7 +39,6 @@
           :filteredPhotos="filteredPhotos"
           :mainPhotoId="null"
           :selectedPhoto="selectedPhoto"
-          v-model:selectedDate="selectedDate"
           :formatTime="formatTime"
           @showPhoto="showPhoto"
           @deletePhoto="deletePhoto"
@@ -51,21 +54,15 @@
     </div>
 
     <!-- ✅ 사진 모달 -->
-    <PhotoModal v-if="modalPhotoUrl" :photoUrl="modalPhotoUrl" @close="modalPhotoUrl = null" />
-
-    <!-- ✅ 날짜별 요약 모달 (여기 안에 있어야 함!) -->
-    <AngleTrendModal
-      v-if="showTrendModal"
-      :selectedDate="selectedDate"
-      @close="showTrendModal = false"
+    <PhotoModal
+      v-if="modalPhotoUrl"
+      :photoUrl="modalPhotoUrl"
+      @close="modalPhotoUrl = null"
     />
 
 
-  </div> 
+  </div>
 </template>
-
-
-
 <script>
 import axios from "axios";
 import { ref, onMounted, computed, watch } from "vue";
@@ -75,9 +72,7 @@ import UserSummary from '../components/user/UserSummary.vue';//  사용자 관�
 import PhotoList from '../components/photo/PhotoList.vue';
 import PhotoModal from '../components/photo/PhotoModal.vue';// 사진 관련
 import MainPhotos from '../components/measure/Mainphotos.vue';// 측정 관련
-import SummaryStats from '../components/report/SummaryStats.vue';//  리포트  report
-import AngleTrendModal from '../components/report/AngleTrendModal.vue'
-
+import SummaryStats from '../components/report/SummaryStats.vue';//  리포트 
 
 export default {
   components: {
@@ -87,7 +82,7 @@ export default {
     SummaryStats,
     UserSummary,
     PhotoModal,
-    AngleTrendModal
+
 
   },
   setup() {
@@ -102,14 +97,6 @@ export default {
     const worstPhoto = ref(null);
     const bestFrameUrl = ref(null);
     const worstFrameUrl = ref(null);
-
-    const showTrendModal = ref(false); // ✅ 모달 상태 관리
-
-    const handleDateSelect = (date) => {
-      selectedDate.value = date;
-      showTrendModal.value = true; // ✅ 클릭하면 모달 띄움!
-    };
-
 
     const openModal = (url) => modalPhotoUrl.value = url;
 
@@ -301,33 +288,31 @@ export default {
     selectedDate.value = toKoreanDate(new Date());
   });
 
-    return {
-      user,
-      photos,
-      bestPhoto,
-      worstPhoto,
-      selectedPhoto,
-      deletePhoto,
-      showPhoto,
-      deleteAccount,
-      logout,
-      startCamera,
-      cameraActive,
-      handlePhotoUploaded,
-      formatTime,
-      selectedDate,
-      filteredPhotos,
-      modalPhotoUrl,
-      openModal,
-      calendarStats,
-      fetchLatestPosture,
-      bestFrameUrl,
-      worstFrameUrl,
-      handleDateSelect,
-      showTrendModal, 
-      selectedDate,
-      handleDateSelect,
-    };
+  return {
+  user,
+  photos,
+  bestPhoto,
+  worstPhoto,
+  selectedPhoto,
+  deletePhoto,
+  showPhoto,
+  deleteAccount,
+  logout,
+  startCamera,
+  cameraActive,
+  handlePhotoUploaded,
+  formatTime,
+  selectedDate,
+  filteredPhotos,
+  modalPhotoUrl,
+  openModal,
+  calendarStats,
+  fetchLatestPosture,
+  bestFrameUrl,
+  worstFrameUrl,
+
+};
+
   }
 };
 </script>
