@@ -1,19 +1,39 @@
 <template>
-  <div class="user-summary">
-    <h3>📝 오늘의 건강 리포트</h3>
-    <hr />
-    <p>📸 <strong>최근 업로드:</strong> {{ latestUpload }}</p>
-    <p>📈 <strong>이번 주 업로드:</strong> {{ weeklyCount }}회</p>
-    <p>👍 <strong>자세 피드백:</strong> {{ feedback }}</p>
-    <p>🕒 <strong>다음 측정 추천:</strong> {{ nextCheck }}</p>
+  <div class="user-summary-card">
+    <h3 class="section-title">📝 오늘의 건강 리포트</h3>
+    <div class="divider" />
 
-    <!-- 📊 자세 분석 요조 -->
+    <div class="summary-item">
+      <span>📸 <strong>최근 업로드:</strong></span>
+      <span>{{ latestUpload }}</span>
+    </div>
+    <div class="summary-item">
+      <span>📈 <strong>이번 주 업로드:</strong></span>
+      <span>{{ weeklyCount }}회</span>
+    </div>
+    <div class="summary-item">
+      <span>👍 <strong>자세 피드백:</strong></span>
+      <span>{{ feedback }}</span>
+    </div>
+    <div class="summary-item">
+      <span>🕒 <strong>다음 측정 추천:</strong></span>
+      <span>{{ nextCheck }}</span>
+    </div>
+
     <div class="posture-summary">
       <h4>📊 목 & 어깨 분석 결과</h4>
-      <p><strong>평균 목 각도:</strong> {{ averageNeckAngle }}°</p>
-      <p><strong>거북목 비율:</strong> {{ turtleNeckPercentage }}%</p>
-      <p><strong>평균 어깨 기울기:</strong> {{ averageShoulderDiff }}px</p>
-      <p><strong>어깨 불균형 비율:</strong> {{ shoulderUnevenPercentage }}%</p>
+      <div class="posture-item">
+        <strong>평균 목 각도:</strong> {{ averageNeckAngle }}°
+      </div>
+      <div class="posture-item">
+        <strong>거북목 비율:</strong> {{ turtleNeckPercentage }}%
+      </div>
+      <div class="posture-item">
+        <strong>평균 어깨 기울기:</strong> {{ averageShoulderDiff }}px
+      </div>
+      <div class="posture-item">
+        <strong>어깨 불균형 비율:</strong> {{ shoulderUnevenPercentage }}%
+      </div>
     </div>
   </div>
 </template>
@@ -36,9 +56,20 @@ export default {
       return latest.toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' });
     },
     weeklyCount() {
-      const oneWeekAgo = new Date();
-      oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
-      return this.photos.filter(p => new Date(p.uploaded_at) > oneWeekAgo).length;
+      const today = new Date();
+      const day = today.getDay();
+      const monday = new Date(today);
+      monday.setDate(today.getDate() - ((day + 6) % 7));
+      monday.setHours(0, 0, 0, 0);
+
+      const sunday = new Date(monday);
+      sunday.setDate(monday.getDate() + 6);
+      sunday.setHours(23, 59, 59, 999);
+
+      return this.photos.filter(p => {
+        const uploaded = new Date(p.uploaded_at);
+        return p.type === 'best' && uploaded >= monday && uploaded <= sunday;
+      }).length;
     },
     feedback() {
       return this.photos.length > 0 ? '정상 자세' : '측정 필요';
@@ -74,35 +105,48 @@ export default {
 </script>
 
 <style scoped>
-.user-summary {
-  min-height: 180px;
-  margin-top: 20px;
+.user-summary-card {
+  background: #ffffff;
+  padding: 20px;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
   font-size: 14px;
-  color: #333;
   line-height: 1.6;
-  background-color: #f8fbff;
-  padding: 12px;
-  border-radius: 8px;
-  border: 1px solid #ddeeff;
+  color: #333;
 }
 
-.user-summary hr {
-  margin-bottom: 12px;
-  border: none;
-  border-top: 1px solid #ccc;
+.section-title {
+  font-size: 20px;
+  font-weight: bold;
+  color: #1976d2;
+  margin-bottom: 10px;
+}
+
+.divider {
+  border-top: 1px solid #e0e0e0;
+  margin: 12px 0;
+}
+
+.summary-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 4px 0;
 }
 
 .posture-summary {
   margin-top: 20px;
+  border-top: 1px dashed #ccc;
   padding-top: 12px;
-  border-top: 1px solid #ccc;
-  font-size: 14px;
-  color: #333;
 }
 
 .posture-summary h4 {
   margin-bottom: 10px;
-  font-size: 16px;
+  font-size: 15px;
   font-weight: bold;
+  color: #333;
+}
+
+.posture-item {
+  margin: 4px 0;
 }
 </style>
