@@ -36,13 +36,13 @@
 
     <!-- 📅 날짜 필터 -->
     <div class="date-filter">
-      <label for="filter-date" class="date-label">날짜 필터:</label>
+      <label for="filter-date" class="date-label">📅 날짜 필터:</label>
       <input
         id="filter-date"
         type="date"
         :value="selectedDate"
+        @input="onDateInput"
         class="date-input"
-        @input="$emit('update:selectedDate', $event.target.value)"
       />
     </div>
 
@@ -98,59 +98,69 @@
   </div>
 </template>
 
+<script setup>
+import { computed,ref } from 'vue'
+import PhotoItem from './PhotoItem.vue'
 
-<script>
-import PhotoItem from './PhotoItem.vue';
+const props = defineProps({
+  filteredPhotos: Array,
+  selectedPhoto: Object,
+  selectedDate: String,
+  formatTime: Function
+})
 
-export default {
-  components: { PhotoItem },
-  props: {
-    filteredPhotos: Array,
-    selectedPhoto: Object,
-    selectedDate: String,
-    formatTime: Function,
-  },
-  emits: ['showPhoto', 'deletePhoto', 'update:selectedDate', 'handlePhotoUploaded'],
-  data() {
-    return {
-      isBestOpen: true,
-      isWorstOpen: true,
-    };
-  },
-  computed: {
-    bestPhotos() {
-      return [...this.filteredPhotos]
-        .filter(photo => photo.type === 'best')
-        .sort((a, b) => new Date(b.uploaded_at) - new Date(a.uploaded_at));
-    },
-    worstPhotos() {
-      return [...this.filteredPhotos]
-        .filter(photo => photo.type === 'worst')
-        .sort((a, b) => new Date(b.uploaded_at) - new Date(a.uploaded_at));
-    },
-  },
-  methods: {
-    async deleteAll(type) {
-      const confirmMsg =
-        type === 'best'
-          ? '가장 좋은 자세 사진을 모두 삭제하시겠습니까?'
-          : '가장 나쁜 자세 사진을 모두 삭제하시겠습니까?';
-      if (!confirm(confirmMsg)) return;
+const emit = defineEmits([
+  'showPhoto',
+  'deletePhoto',
+  'update:selectedDate',
+  'handlePhotoUploaded'
+])
 
-      const targets = this.filteredPhotos.filter(photo => photo.type === type);
-      for (const photo of targets) {
-        await this.$emit('deletePhoto', photo.id);
-      }
-      this.$emit('handlePhotoUploaded');
-    },
-    getShoulderClass(status) {
-      if (!status || status.includes('없음')) return 'gray';
-      if (status.includes('수평')) return 'green';
-      return 'red';
-    }
-  },
-};
+// 🔁 아코디언 상태
+const isBestOpen = ref(true)
+const isWorstOpen = ref(true)
+
+const onDateInput = (event) => {
+  emit('update:selectedDate', event.target.value)
+}
+
+// ✅ 필터링된 best 사진
+const bestPhotos = computed(() => {
+  return [...(props.filteredPhotos || [])]
+    .filter(photo => photo.type === 'best')
+    .sort((a, b) => new Date(b.uploaded_at) - new Date(a.uploaded_at))
+})
+
+// ✅ 필터링된 worst 사진
+const worstPhotos = computed(() => {
+  return [...(props.filteredPhotos || [])]
+    .filter(photo => photo.type === 'worst')
+    .sort((a, b) => new Date(b.uploaded_at) - new Date(a.uploaded_at))
+})
+
+// ❌ 전체 삭제 기능
+const deleteAll = async (type) => {
+  const confirmMsg = type === 'best'
+    ? '가장 좋은 자세 사진을 모두 삭제하시겠습니까?'
+    : '가장 나쁜 자세 사진을 모두 삭제하시겠습니까?'
+
+  if (!confirm(confirmMsg)) return
+
+  const targets = (props.filteredPhotos || []).filter(p => p.type === type)
+  for (const photo of targets) {
+    await emit('deletePhoto', photo.id)
+  }
+  emit('handlePhotoUploaded')
+}
+
+// 🦴 어깨 상태 색상 반환
+const getShoulderClass = (status) => {
+  if (!status || status.includes('없음')) return 'gray'
+  if (status.includes('수평')) return 'green'
+  return 'red'
+}
 </script>
+
 <style scoped>
 /* ✅ 전체 박스 통일 */
 .white-card {

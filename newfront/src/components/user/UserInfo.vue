@@ -33,24 +33,11 @@
         <button class="delete" @click="$emit('deleteAccount')">회원 탈퇴</button>
       </div>
     </div>
-
-    <!-- 🔵 캘린더 카드 -->
-    <div class="card-box">
-      <div class="section-title-wrapper">
-        <h2 class="section-title">
-          <span class="emoji">📅</span> 이번달 자세
-        </h2>
-      </div>
-      <MiniCalendar
-        :stats="calendarStats"
-        @dateSelected="$emit('selectDate', $event)"
-      />
-    </div>
   </div>
 </template>
 
 <script setup>
-import MiniCalendar from '../calendar/MiniCalendar.vue'
+
 
 const props = defineProps({
   user: Object,

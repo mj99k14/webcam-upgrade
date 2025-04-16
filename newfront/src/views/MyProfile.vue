@@ -29,29 +29,39 @@
           @handlePhotoUploaded="handlePhotoUploaded"
           @openModal="openModal"
         />
+        <button class="summary-btn" @click="showSummaryModal = true">
+          📊 자세 분석 요약 보기
+        </button>
+
       </div>
     </div>
 
     <!-- ✅ 오른쪽: 사진 목록 -->
     <div class="card-wrapper">
       <div class="card-inner">
+      
         <PhotoList
-          :filteredPhotos="filteredPhotos"
-          :mainPhotoId="null"
-          :selectedPhoto="selectedPhoto"
-          :formatTime="formatTime"
-          @showPhoto="showPhoto"
-          @deletePhoto="deletePhoto"
-        />
+        :filteredPhotos="filteredPhotos"
+        :mainPhotoId="null"
+        :selectedPhoto="selectedPhoto"
+        :selectedDate="selectedDate" 
+        @update:selectedDate="selectedDate = $event" 
+        :formatTime="formatTime"
+        @showPhoto="showPhoto"
+        @deletePhoto="deletePhoto"
+      />
+
+    
       </div>
     </div>
 
-    <!-- ✅ 하단: 요약 통계 -->
-    <div class="summary-wrapper">
-      <div class="inner-white-card">
-        <SummaryStats :photos="photos" />
-      </div>
-    </div>
+    <!-- ✅ 분석 요약 모달 -->
+    <SummaryStatsModal
+      v-if="showSummaryModal"
+      :photos="safePhotos"
+      :visible="showSummaryModal"
+      @close="showSummaryModal = false"
+    />
 
     <!-- ✅ 사진 모달 -->
     <PhotoModal
@@ -59,22 +69,34 @@
       :photoUrl="modalPhotoUrl"
       @close="modalPhotoUrl = null"
     />
-
-
   </div>
 </template>
+
 <script>
 import axios from "axios";
 import { ref, onMounted, computed, watch } from "vue";
 import { useRouter } from "vue-router";
+
+// 🔹 컴포넌트 임포트
 import UserInfo from '../components/user/UserInfo.vue';
-import UserSummary from '../components/user/UserSummary.vue';//  사용자 관련
+import UserSummary from '../components/user/UserSummary.vue';
 import PhotoList from '../components/photo/PhotoList.vue';
-import PhotoModal from '../components/photo/PhotoModal.vue';// 사진 관련
-import MainPhotos from '../components/measure/Mainphotos.vue';// 측정 관련
-import SummaryStats from '../components/report/SummaryStats.vue';//  리포트 
+import PhotoModal from '../components/photo/PhotoModal.vue';
+import MainPhotos from '../components/measure/Mainphotos.vue';
+import SummaryStats from '../components/report/SummaryStats.vue';
+import SummaryCards from '../components/report/SummaryCards.vue';
+import SummaryStatsModal from '../components/report/SummaryStatsModal.vue';
+import MiniCalendar from '../components/calendar/MiniCalendar.vue';
+
 
 export default {
+  props: {
+  photos: {
+    type: Array,
+    required: false,
+    default: () => []
+  }
+},
   components: {
     UserInfo,
     PhotoList,
@@ -82,13 +104,13 @@ export default {
     SummaryStats,
     UserSummary,
     PhotoModal,
-
-
+    SummaryCards,
+    SummaryStatsModal,
+    MiniCalendar,
   },
-  setup() {
+  setup(props) {
     const router = useRouter();
     const user = ref({});
-    const photos = ref([]);
     const selectedPhoto = ref(null);
     const cameraActive = ref(false);
     const selectedDate = ref("");
@@ -97,6 +119,12 @@ export default {
     const worstPhoto = ref(null);
     const bestFrameUrl = ref(null);
     const worstFrameUrl = ref(null);
+    const showSummaryModal = ref(false);
+
+
+    // ✅ props.photos를 computed로 래핑
+    const photos = ref([]);
+
 
     const openModal = (url) => modalPhotoUrl.value = url;
 
@@ -105,6 +133,8 @@ export default {
       date.setHours(date.getHours() + 9);
       return date.toISOString().split("T")[0];
     };
+    const safePhotos = computed(() => Array.isArray(photos.value) ? photos.value : []);
+
 
     const calendarStats = computed(() =>
       photos.value.map(p => ({
@@ -249,6 +279,9 @@ export default {
       }
     };
 
+    const handleCalendarClick = (date) => {
+      selectedDate.value = date;
+    };
 
       
   const showPhoto = (photo, openModal = true) => {
@@ -290,7 +323,7 @@ export default {
 
   return {
   user,
-  photos,
+  safePhotos,
   bestPhoto,
   worstPhoto,
   selectedPhoto,
@@ -310,8 +343,10 @@ export default {
   fetchLatestPosture,
   bestFrameUrl,
   worstFrameUrl,
-
+  showSummaryModal,
+  handleCalendarClick,
 };
+
 
   }
 };
@@ -442,5 +477,27 @@ export default {
   box-sizing: border-box;
 }
 
+.summary-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 24px;
+  margin-top: 16px;
+  border: none;
+  border-radius: 8px;
+  background-color: #1976d2; /* 파란색 배경 */
+  color: white;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.summary-btn:hover {
+  background-color: #1565c0; /* hover 시 더 진한 파랑 */
+  transform: translateY(-2px);
+}
 
 </style>

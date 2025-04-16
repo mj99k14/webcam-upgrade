@@ -5,7 +5,7 @@
     </div>
 
     <div class="card orange">
-      ⚠️ 평균 목 각도<br /><strong>{{ overallAverage.toFixed(1) }}°</strong>
+      ⚠️ 평균 목 각도<br /><strong>{{ Number(overallAverage).toFixed(1) }}°</strong>
     </div>
 
     <div class="card orange">
@@ -13,7 +13,7 @@
     </div>
 
     <div class="card blue">
-      ↔️ 평균 어꺠 기울기<br /><strong>{{ shoulderAvg.toFixed(1) }}px</strong>
+      ↔️ 평균 어꺠 기울기<br /><strong>{{ Number(shoulderAvg).toFixed(1) }}px</strong>
     </div>
 
     <div class="card gray">
@@ -21,7 +21,7 @@
     </div>
 
     <div class="card green">
-      📀 최대 목 각도<br /><strong>{{ maxNeckAngle.toFixed(1) }}°</strong>
+      📀 최대 목 각도<br /><strong>{{ Number(maxNeckAngle).toFixed(1) }}°</strong>
     </div>
 
     <div class="card purple">

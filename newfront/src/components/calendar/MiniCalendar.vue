@@ -30,11 +30,11 @@
 </template>
 
 <script setup>
-import { computed, ref, watch } from 'vue'
+import { computed, ref } from 'vue'
 
 const props = defineProps({
   selectedDate: String,
-  stats: Array // 📌 [{ date: '2025-04-16', status: 'bad' }, ...]
+  stats: Array
 })
 
 const emit = defineEmits(['dateSelected'])
@@ -63,7 +63,6 @@ const fullDate = (day) => {
   return `${year.value}-${m}-${d}`
 }
 
-// 📌 날짜 상태 클래스 (선택됨, good/bad)
 const getDateClass = (day) => {
   if (!day) return 'empty'
   const dateStr = fullDate(day)
@@ -78,7 +77,6 @@ const getDateClass = (day) => {
   }
 }
 
-// 📌 월 이동 함수
 const prevMonth = () => {
   if (month.value === 0) {
     month.value = 11
@@ -101,60 +99,87 @@ const nextMonth = () => {
 <style scoped>
 .calendar-wrapper {
   width: 100%;
+  max-width: 320px;
+  margin: 20px auto; /* 위아래 여백 추가 */
   text-align: center;
+  font-family: 'Noto Sans KR', sans-serif;
 }
 
 .calendar-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 12px;
   font-weight: bold;
+  font-size: 16px;
+  margin: 12px 0 16px;
+  color: #2c3e50;
 }
 
 .calendar-header button {
   background-color: transparent;
   border: none;
-  font-size: 20px;
+  font-size: 22px;
+  color: #1976d2;
   cursor: pointer;
+  transition: 0.2s ease;
+}
+.calendar-header button:hover {
+  transform: scale(1.1);
 }
 
 .calendar-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 4px;
+  gap: 4px; /* 간격 조금 줄임 */
 }
 
 .calendar-cell {
-  padding: 8px 0;
+  height: 36px;               /* ✅ 고정 높이 */
+  line-height: 36px;          /* ✅ 수직 가운데 정렬 */
   border-radius: 8px;
-  background-color: #f9f9f9;
   font-weight: bold;
   cursor: pointer;
+  background-color: #f9f9f9;
+  border: 2px solid transparent;
+  transition: all 0.2s ease;
+  font-size: 14px;
 }
 
+.calendar-cell:hover {
+  background-color: #e3f2fd;
+}
+
+/* ✅ 선택된 날짜 */
 .calendar-cell.selected {
   border: 2px solid #1976d2;
+  background-color: #bbdefb;
+  box-shadow: 0 0 0 1px white inset;
 }
 
+/* ✅ 상태 표시 */
 .calendar-cell.good {
-  background-color: #81c784; /* 초록 */
+  background-color: #81c784; /* 연초록 */
   color: white;
 }
-
 .calendar-cell.bad {
-  background-color: #e57373; /* 빨강 */
+  background-color: #e57373; /* 연빨강 */
   color: white;
 }
 
+/* ✅ 비어있는 셀 */
 .calendar-cell.empty {
   background-color: transparent;
   cursor: default;
+  pointer-events: none;
 }
 
+/* ✅ 요일 헤더 셀 */
 .header-cell {
   background-color: transparent;
-  font-weight: 600;
-  color: #555;
+  font-weight: bold;
+  color: #455a64;
+  height: 32px;
+  line-height: 32px;
+  font-size: 14px;
 }
 </style>
