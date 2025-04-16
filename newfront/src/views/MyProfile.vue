@@ -50,8 +50,6 @@
         @showPhoto="showPhoto"
         @deletePhoto="deletePhoto"
       />
-
-    
       </div>
     </div>
 
@@ -323,6 +321,7 @@ export default {
 
   return {
   user,
+  photos,
   safePhotos,
   bestPhoto,
   worstPhoto,

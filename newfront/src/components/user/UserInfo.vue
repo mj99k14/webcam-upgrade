@@ -38,7 +38,6 @@
 
 <script setup>
 
-
 const props = defineProps({
   user: Object,
   calendarStats: {
@@ -48,6 +47,7 @@ const props = defineProps({
 })
 const emit = defineEmits(['logout', 'deleteAccount', 'selectDate'])
 </script>
+
 <style scoped>
 .outer-wrapper {
   display: flex;
@@ -56,20 +56,25 @@ const emit = defineEmits(['logout', 'deleteAccount', 'selectDate'])
   gap: 20px;
 }
 
-/* 📦 공통 카드 박스 */
-.card-box {
+/* ✅ 공통 카드 스타일 */
+/* 🔵 공통 카드 스타일 */
+.card-box,
+.calendar-card,
+.health-report-card {
   background: #ffffff;
-  padding: 24px 20px;
+  padding: 24px;  /* 기존 padding 20px에서 증가 */
   border-radius: 16px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  font-size: 14px;
+  line-height: 1.6;
+  color: #333;
   width: 100%;
-  max-width: 360px;
+  max-width: 1200px;  /* 더 넓은 max-width 설정 */
   box-sizing: border-box;
   font-family: 'Noto Sans KR', sans-serif;
-  text-align: center;
 }
 
-/* 🔵 섹션 제목 */
+/* ✅ 마이페이지 타이틀 */
 .section-title-wrapper {
   display: flex;
   justify-content: center;
@@ -87,22 +92,11 @@ const emit = defineEmits(['logout', 'deleteAccount', 'selectDate'])
   padding-bottom: 4px;
 }
 
-.section-title .emoji {
-  font-size: 20px;
-}
-
-/* 👋 환영 메시지 */
-.welcome {
-  font-size: 20px;
-  font-weight: 700;
-  margin-bottom: 14px;
-}
-
-/* 🧑 프로필 */
+/* ✅ 마이페이지 사용자 정보 */
 .user-avatar,
 .profile-img {
-  width: 88px;
-  height: 88px;
+  width: 120px;  /* 프로필 이미지 크기 확대 */
+  height: 120px;
   margin: 12px auto;
   border-radius: 50%;
   font-size: 32px;
@@ -120,30 +114,25 @@ const emit = defineEmits(['logout', 'deleteAccount', 'selectDate'])
   object-fit: cover;
 }
 
-/* ℹ️ 사용자 정보 */
-.info-text p {
-  margin: 4px 0;
-  font-size: 15px;
-  color: #333;
-}
-
-/* 🔘 버튼 */
+/* ✅ 버튼 스타일 */
 .button-group {
   display: flex;
   justify-content: center;
-  gap: 10px;
-  margin: 16px 0 8px;
+  gap: 20px;
+  margin-top: 20px;
 }
 
 .logout, .delete {
-  padding: 6px 14px;
-  min-width: 88px;
-  font-size: 14px;
+  padding: 10px 18px;
+  font-size: 16px;
   font-weight: 600;
-  border-radius: 6px;
+  border-radius: 8px;
   border: none;
   cursor: pointer;
   text-align: center;
+  width: 100%;
+  max-width: 180px;
+  transition: all 0.3s ease;
 }
 
 .logout {
@@ -151,14 +140,18 @@ const emit = defineEmits(['logout', 'deleteAccount', 'selectDate'])
   color: white;
 }
 
+.logout:hover {
+  background-color: #1565c0;
+}
+
 .delete {
   background-color: #e53935;
   color: white;
 }
 
-
-
-
+.delete:hover {
+  background-color: #c62828;
+}
 
 
 </style>

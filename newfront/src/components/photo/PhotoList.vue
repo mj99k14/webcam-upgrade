@@ -286,29 +286,30 @@ const getShoulderClass = (status) => {
 /* ✅ 날짜 필터 */
 .date-filter {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  background-color: #f1f8ff;
-  border: 1px solid #cce4ff;
+  align-items: center; /* 수직 중앙 정렬 */
+  gap: 12px;            /* 라벨과 인풋 사이 여백 */
+  padding: 10px 16px;
+  border: 1px solid #d0e2ff;
   border-radius: 12px;
-  padding: 12px 24px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
-  max-width: 600px;
-  margin: 0 auto 24px;
+  background-color: #f0f8ff;
+  flex-wrap: nowrap;   /* ✅ 줄바꿈 방지 */
 }
+
 .date-label {
-  font-weight: bold;
   font-size: 16px;
+  white-space: nowrap; /* ✅ 줄바꿈 방지 */
 }
+
 .date-input {
-  padding: 10px 14px;
   font-size: 16px;
-  border: 1px solid #ccc;
+  padding: 8px 12px;
   border-radius: 8px;
-  min-width: 180px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+  border: 1px solid #ccc;
+  width: 200px;
+  min-width: 160px;
 }
+
+
 .date-input:focus {
   border-color: #1976d2;
   outline: none;
@@ -412,4 +413,6 @@ const getShoulderClass = (status) => {
   opacity: 0;
   transform: translateY(-8px);
 }
+
+
 </style>
