@@ -54,10 +54,10 @@ const emit = defineEmits(['logout', 'deleteAccount', 'selectDate'])
   flex-direction: column;
   align-items: center;
   gap: 20px;
+  
 }
 
 /* ✅ 공통 카드 스타일 */
-/* 🔵 공통 카드 스타일 */
 .card-box,
 .calendar-card,
 .health-report-card {
