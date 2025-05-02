@@ -7,13 +7,11 @@ const db = require("../config/database");
 
 const router = express.Router();
 const uploadBasePath = "/home/yarimasu/kmj1999";
-// ✅ uploads 폴더 없으면 생성
 const uploadDir = "uploads";
 if (!fs.existsSync(uploadDir)) {
     fs.mkdirSync(uploadDir, { recursive: true });
 }
 
-// ✅ multer 저장 설정
 const storage = multer.diskStorage({
     destination: (req, file, cb) => cb(null, uploadDir),
     filename: (req, file, cb) => cb(null, Date.now() + path.extname(file.originalname))
@@ -25,7 +23,7 @@ router.post("/upload", (req, res) => {
     upload.single("photo")(req, res, async (err) => {
         if (err) return res.status(500).json({ success: false, message: "파일 업로드 오류" });
 
-        const { user_id, neck_angle, type } = req.body;
+        const { user_id, neck_angle, type, shoulder_status, shoulder_diff } = req.body;
         const filename = req.file?.filename;
         if (!user_id || !filename) return res.status(400).json({ success: false, message: "필수 데이터 없음" });
 
@@ -36,9 +34,9 @@ router.post("/upload", (req, res) => {
 
         try {
             const [result] = await db.promise().query(
-                `INSERT INTO cam_photos (user_id, photo_url, neck_angle, uploaded_at, type)
-                 VALUES (?, ?, ?, NOW(), ?)`,
-                [Number(user_id), photoUrl, neck, photoType]
+                `INSERT INTO cam_photos (user_id, photo_url, neck_angle, uploaded_at, type, shoulder_status, shoulder_diff)
+                 VALUES (?, ?, ?, NOW(), ?, ?, ?)`,
+                [Number(user_id), photoUrl, neck, photoType, shoulder_status || '', parseFloat(shoulder_diff) || 0]
             );
             res.json({ success: true, message: "업로드 성공", photo_url: photoUrl, photo_id: result.insertId });
         } catch (error) {
@@ -53,7 +51,12 @@ router.post("/upload-pair", upload.fields([
     { name: "worst", maxCount: 1 }
 ]), async (req, res) => {
     try {
-        const { user_id, best_angle, worst_angle } = req.body;
+        const {
+            user_id, best_angle, worst_angle,
+            best_shoulder_status, worst_shoulder_status,
+            best_shoulder_diff, worst_shoulder_diff
+        } = req.body;
+
         const best = req.files.best?.[0];
         const worst = req.files.worst?.[0];
         if (!user_id || (!best && !worst)) return res.status(400).json({ success: false, message: "필수 데이터 누락" });
@@ -64,9 +67,9 @@ router.post("/upload-pair", upload.fields([
             const bestUrl = `/uploads/${best.filename}`;
             const angle = parseFloat(best_angle) || 0;
             const [result] = await db.promise().query(
-                `INSERT INTO cam_photos (user_id, photo_url, neck_angle, uploaded_at, type)
-                 VALUES (?, ?, ?, NOW(), ?)`,
-                [user_id, bestUrl, angle, 'best']
+                `INSERT INTO cam_photos (user_id, photo_url, neck_angle, uploaded_at, type, shoulder_status, shoulder_diff)
+                 VALUES (?, ?, ?, NOW(), ?, ?, ?)`,
+                [user_id, bestUrl, angle, 'best', best_shoulder_status || '', parseFloat(best_shoulder_diff) || 0]
             );
             results.push({ type: 'best', photo_id: result.insertId });
         }
@@ -75,9 +78,9 @@ router.post("/upload-pair", upload.fields([
             const worstUrl = `/uploads/${worst.filename}`;
             const angle = parseFloat(worst_angle) || 0;
             const [result] = await db.promise().query(
-                `INSERT INTO cam_photos (user_id, photo_url, neck_angle, uploaded_at, type)
-                 VALUES (?, ?, ?, NOW(), ?)`,
-                [user_id, worstUrl, angle, 'worst']
+                `INSERT INTO cam_photos (user_id, photo_url, neck_angle, uploaded_at, type, shoulder_status, shoulder_diff)
+                 VALUES (?, ?, ?, NOW(), ?, ?, ?)`,
+                [user_id, worstUrl, angle, 'worst', worst_shoulder_status || '', parseFloat(worst_shoulder_diff) || 0]
             );
             results.push({ type: 'worst', photo_id: result.insertId });
         }
@@ -124,7 +127,7 @@ router.get("/grouped-by-date", async (req, res) => {
     if (!user_id) return res.status(400).json({ success: false, message: "user_id 필요" });
     try {
         const [rows] = await db.promise().query(
-            `SELECT id, photo_url, neck_angle, uploaded_at, type, DATE(uploaded_at) as date
+            `SELECT id, photo_url, neck_angle, uploaded_at, type, shoulder_status, shoulder_diff, DATE(uploaded_at) as date
              FROM cam_photos
              WHERE user_id = ? AND type IN ('best', 'worst')
              ORDER BY uploaded_at DESC`,
@@ -144,32 +147,46 @@ router.get("/grouped-by-date", async (req, res) => {
     }
 });
 
-// ✅ 사진 삭제 (DB + 실제 파일 삭제)
+
+// ✅ 사진 삭제 + 연결된 측정 결과(posture_results)도 같이 삭제
 router.delete("/:id", async (req, res) => {
     try {
         const { id } = req.params;
-        const [[photo]] = await db.promise().query("SELECT * FROM cam_photos WHERE id = ?", [id]);
+
+        const [[photo]] = await db.promise().query(
+            "SELECT * FROM cam_photos WHERE id = ?",
+            [id]
+        );
         if (!photo) return res.status(404).json({ success: false, message: "사진 없음" });
 
-        // 실제 파일 삭제
-        const relativePath = photo.photo_url.replace(/^\/+/, ''); // uploads/xxx.jpg
+        // 📁 실제 파일 삭제
+        const relativePath = photo.photo_url.replace(/^\/+/, '');
         const filePath = path.join(uploadBasePath, relativePath);
-        console.log("🧹 삭제 시도:", filePath);
-
         if (fs.existsSync(filePath)) {
-            fs.unlinkSync(filePath); // ✅ 동기로 처리
-            console.log("🗑️ 실제 파일 삭제:", filePath);
-        } else {
-            console.warn("⚠️ 파일이 존재하지 않음:", filePath);
+            fs.unlinkSync(filePath);
+            console.log("🗑️ 파일 삭제:", filePath);
         }
 
+        // ✅ posture_results에서 연결된 best/worst 사진만 NULL 처리
+        await db.promise().query(
+            `UPDATE posture_results SET best_photo_id = NULL WHERE best_photo_id = ?`,
+            [id]
+        );
+        await db.promise().query(
+            `UPDATE posture_results SET worst_photo_id = NULL WHERE worst_photo_id = ?`,
+            [id]
+        );
 
+        // ✅ cam_photos 삭제
         await db.promise().query("DELETE FROM cam_photos WHERE id = ?", [id]);
-        res.json({ success: true, message: "삭제 완료" });
+
+        res.json({ success: true, message: "📸 사진 및 연동 해제 완료" });
+
     } catch (error) {
         console.error("🚨 삭제 오류:", error);
         res.status(500).json({ success: false, message: "서버 오류" });
     }
 });
+
 
 module.exports = router;
