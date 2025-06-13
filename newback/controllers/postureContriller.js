@@ -198,6 +198,31 @@ const getDailyPostureChart = (req, res) => {
     res.send("📈 차트용 데이터 반환 테스트");
 };
 
+
+const deletePhoto = async (req, res) => {
+    const photoId = req.params.id;
+
+    try {
+        // 1. DB에서 삭제할 사진 정보 조회
+        const [rows] = await db.promise().query('SELECT photo_url FROM cam_photos WHERE id = ?', [photoId]);
+        if (rows.length === 0) return res.status(404).json({ success: false, message: '사진을 찾을 수 없습니다.' });
+
+        const photoPath = path.join(__dirname, '..', rows[0].photo_url);
+
+        // 2. 파일 삭제
+        if (fs.existsSync(photoPath)) {
+            fs.unlinkSync(photoPath);
+        }
+
+        // 3. DB에서 사진 삭제
+        await db.promise().query('DELETE FROM cam_photos WHERE id = ?', [photoId]);
+
+        res.json({ success: true, message: '사진이 삭제되었습니다.' });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ success: false, message: '삭제 중 오류가 발생했습니다.' });
+    }
+};
 module.exports = {
     savePostureResult,
     getAngleTrend,
@@ -205,5 +230,6 @@ module.exports = {
     getLatestPosture,
     getTodaySummary,
     getDailySummary,
-    getDailyPostureChart
+    getDailyPostureChart,
+    deletePhoto
 };
