@@ -96,19 +96,102 @@ const getPostureHistory = (req, res) => {
     res.send("📚 측정 이력 반환 테스트");
 };
 
-// ✅ 최신 측정 결과
-const getLatestPosture = (req, res) => {
-    res.send("🆕 최신 결과 테스트");
+// ✅ 최신 측정 결과 (DB 조회 연결)
+const getLatestPosture = async (req, res) => {
+    const { user_id } = req.query;
+
+    if (!user_id) {
+        return res.status(400).json({ success: false, message: "user_id 필요" });
+    }
+
+    try {
+        const [rows] = await db.promise().query(
+            `SELECT * FROM posture_results WHERE user_id = ? ORDER BY measured_at DESC LIMIT 1`,
+            [user_id]
+        );
+
+        if (rows.length === 0) {
+            return res.json({ success: true, data: null });
+        }
+
+        return res.json({ success: true, data: rows[0] });
+    } catch (err) {
+        console.error("❌ 최신 결과 조회 실패:", err);
+        return res.status(500).json({ success: false, message: "서버 오류" });
+    }
 };
+
 
 // ✅ 오늘 요약
-const getTodaySummary = (req, res) => {
-    res.send("📅 오늘 요약 테스트");
+const getTodaySummary = async (req, res) => {
+    const { user_id } = req.query;
+    console.log("📥 user_id:", user_id);
+
+    try {
+        const [rows] = await db.promise().query(
+            `SELECT 
+         AVG(average_neck_angle) as avg_neck_angle,
+         MAX(max_neck_angle) as max_neck_angle,
+         COUNT(*) as count,
+         AVG(shoulder_diff) as avg_shoulder_diff
+       FROM posture_results
+       WHERE user_id = ? AND DATE(COALESCE(measured_at, created_at)) = CURDATE()`,
+            [user_id]
+        );
+        console.log("📦 rows:", rows);
+
+        const data = rows[0];
+        console.log("📦 today summary row:", data);
+
+        if (!data || data.count === null || data.count === 0) {
+            return res.json({ success: true, data: null });
+        }
+
+        const result = {
+            averageNeckAngle: data.avg_neck_angle,
+            maxNeckAngle: data.max_neck_angle,
+            // measurementCount: data.count,
+            shoulderStatus: data.avg_shoulder_diff > 10 ? "비대칭" : "정상"
+        };
+
+        res.json({ success: true, data: result });
+    } catch (err) {
+        console.error("🔥 getTodaySummary 서버 오류:", err);
+        res.status(500).json({ success: false, message: "서버 오류", error: err.message });
+    }
 };
 
-// ✅ 날짜별 요약
-const getDailySummary = (req, res) => {
-    res.send("📊 날짜별 요약 테스트");
+// ✅ 날짜별 요약 (DB 연결된 실제 구현)
+const getDailySummary = async (req, res) => {
+    const { user_id } = req.query;
+    if (!user_id) return res.status(400).json({ success: false, message: "user_id 필요" });
+
+    try {
+        const [rows] = await db.promise().query(
+            `SELECT 
+         DATE(measured_at) as date,
+         AVG(average_neck_angle) as avg_neck_angle,
+         MAX(max_neck_angle) as max_neck_angle,
+         AVG(shoulder_diff) as avg_shoulder_diff
+       FROM posture_results
+       WHERE user_id = ?
+       GROUP BY DATE(measured_at)
+       ORDER BY date DESC
+       LIMIT 7`,
+            [user_id]
+        );
+
+        const summaries = rows.map(row => ({
+            date: row.date,
+            neckAngle: row.avg_neck_angle,
+            shoulderStatus: row.avg_shoulder_diff > 10 ? "비대칭" : "정상"
+        }));
+
+        res.json({ success: true, data: summaries });
+    } catch (err) {
+        console.error("❌ 날짜별 요약 실패:", err);
+        res.status(500).json({ success: false, message: "서버 오류" });
+    }
 };
 
 const getDailyPostureChart = (req, res) => {

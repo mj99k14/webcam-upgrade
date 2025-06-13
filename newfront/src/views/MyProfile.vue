@@ -14,7 +14,7 @@
           :stats="calendarStats" 
           @dateSelected="handleCalendarClick"
         />
-        <UserSummary :photos="photos" />
+       <UserSummary v-if="user.id":photos="photos":userId="user.id"/>
       </div>
     </div>
 
@@ -246,7 +246,8 @@ export default {
 
     const fetchLatestPosture = async () => {
       try {
-        const res = await axios.get(`http://210.101.236.158:5000/api/posture/latest/${user.value.id}`);
+        const res = await axios.get(`http://210.101.236.158:5000/api/posture/latest?user_id=${user.value.id}`);
+
         if (res.data.success && res.data.data) {
           const posture = res.data.data;
           const currentIds = photos.value.map(p => p.id);
