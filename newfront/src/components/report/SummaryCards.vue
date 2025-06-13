@@ -8,9 +8,10 @@
       ⚠️ 평균 목 각도<br /><strong>{{ Number(overallAverage).toFixed(1) }}°</strong>
     </div>
 
-    <div class="card orange">
-      ⚠️ 거북목 비율<br /><strong>{{ highAngleRatio }}%</strong>
-    </div>
+   <div class="card orange">
+  ⚠️ 거북목 비율<br /><strong>{{ Number(highAngleRatio).toFixed(1) }}%</strong>
+  </div>
+
 
     <div class="card blue">
       ↔️ 평균 어꺠 기울기<br /><strong>{{ Number(shoulderAvg).toFixed(1) }}px</strong>
