@@ -134,17 +134,24 @@ export default {
     const safePhotos = computed(() => Array.isArray(photos.value) ? photos.value : []);
 
 
-    const calendarStats = computed(() =>
-      photos.value.map(p => ({
-        date: toKoreanDate(p.measured_at || p.uploaded_at),
-        status: (p.average_neck_angle || p.neck_angle) >= 135 ? 'bad' : 'good'
-      }))
-    );
+    const calendarStats = computed(() => {
+      const map = new Map();
 
-    watch(selectedDate, (newDate) => {
-      if (!newDate) return;
-      const photosForDate = photos.value.filter(p => toKoreanDate(p.uploaded_at) === newDate);
-      selectedPhoto.value = photosForDate.find(p => p.type === 'best') || photosForDate.find(p => p.type === 'worst') || photosForDate[0] || null;
+      photos.value.forEach(p => {
+        const date = toKoreanDate(p.measured_at || p.uploaded_at);
+        const status = (p.average_neck_angle || p.neck_angle) >= 135 ? 'bad' : 'good';
+
+        if (map.has(date)) {
+          // 이미 'bad' 상태가 있으면 유지, 아니면 새 상태로 갱신
+          if (map.get(date) !== 'bad') {
+            map.set(date, status);
+          }
+        } else {
+          map.set(date, status);
+        }
+      });
+
+      return Array.from(map.entries()).map(([date, status]) => ({ date, status }));
     });
 
     const filteredPhotos = computed(() => {
