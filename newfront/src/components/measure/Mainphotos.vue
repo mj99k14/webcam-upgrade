@@ -290,6 +290,7 @@ methods: {
       this.bestPhotoId = bestResult?.id || null;
       this.worstPhotoId = worstResult?.id || null;
     }
+    
 
     // 🕒 measured_at: 한국 시간으로 문자열 전송 (YYYY-MM-DDTHH:mm:ss)
     const now = new Date();
@@ -297,29 +298,33 @@ methods: {
     const measuredAt = koreaTime.toLocaleString('sv-SE').replace(' ', 'T'); // 예: 2025-04-10T09:45:23
 
     // 📝 서버에 측정 결과 저장
+  // 📝 서버에 측정 결과 저장
     try {
+      const now = new Date();
+      const koreaTime = new Date(now.getTime() + 9 * 60 * 60 * 1000);
+      const measuredAt = koreaTime.toISOString().slice(0, 19).replace('T', ' ');
+
       await fetch("http://210.101.236.158:5000/api/posture/save", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           user_id: userId,
-          average_neck_angle: avg,
-          max_neck_angle: max,
+          average_neck_angle: this.averageNeck,
+          max_neck_angle: this.maxNeck,
           duration: this.elapsedSeconds,
-          best_photo_id: bestResult?.id || null,
-          worst_photo_id: worstResult?.id || null,
-          best_photo_url: bestResult?.url || null,
-          worst_photo_url: worstResult?.url || null,
-          feedback: max > 135 ? "거북목 의심" : "정상",
+          best_photo_id: this.bestPhotoId,
+          worst_photo_id: this.worstPhotoId,
+          feedback: this.maxNeck > 135 ? "거북목 의심" : "정상",
           shoulder_status: this.shoulderStatus,
           shoulder_diff: parseFloat(this.shoulderDiff),
-          measured_at: measuredAt, // ✅ 최종 날짜 문자열 전달
+          measured_at: measuredAt,
         }),
       });
     } catch (err) {
       console.error("측정 결과 저장 실패:", err);
       alert("📛 측정 결과를 서버에 저장하는 도중 오류가 발생했습니다.");
     }
+
 
     this.isCapturing = false;
     this.measurementFinished = true;
