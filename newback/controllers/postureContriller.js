@@ -92,9 +92,31 @@ const getAngleTrend = async (req, res) => {
     }
 };
 // ✅ 측정 이력 조회
-const getPostureHistory = (req, res) => {
-    res.send("📚 측정 이력 반환 테스트");
+const getPostureHistory = async (req, res) => {
+    const { user_id } = req.query;
+
+    if (!user_id) {
+        return res.status(400).json({ success: false, message: "user_id가 필요합니다." });
+    }
+
+    try {
+        const [rows] = await db.promise().query(
+            `SELECT 
+                id, average_neck_angle, max_neck_angle, duration_seconds,
+                best_photo_id, worst_photo_id, feedback, shoulder_status, shoulder_diff, measured_at
+             FROM posture_results
+             WHERE user_id = ?
+             ORDER BY measured_at DESC`,
+            [user_id]
+        );
+
+        return res.json({ success: true, history: rows });
+    } catch (err) {
+        console.error("❌ 측정 이력 조회 실패:", err);
+        return res.status(500).json({ success: false, message: "서버 오류", error: err.message });
+    }
 };
+
 
 // ✅ 최신 측정 결과 (DB 조회 연결)
 const getLatestPosture = async (req, res) => {
