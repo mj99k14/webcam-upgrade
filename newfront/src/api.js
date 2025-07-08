@@ -1,11 +1,11 @@
+// src/api.js
 import axios from "axios";
 
 const API = axios.create({
-    baseURL: "http://210.101.236.158:5000/api", // 백엔드 주소
-    withCredentials: true, // 쿠키 인증 정보 포함
+    baseURL: "http://210.101.236.158:5000/api"
 });
 
-//모든 요청에 자동으로jwt 토근 붙이기
+//  요청마다 JWT 자동 삽입
 API.interceptors.request.use((config) => {
     const token = localStorage.getItem("token");
     if (token) {
@@ -14,53 +14,63 @@ API.interceptors.request.use((config) => {
     return config;
 });
 
+//  응답 에러 처리 (예: 인증 만료 시 로그아웃)
+API.interceptors.response.use(
+    (res) => res,
+    (err) => {
+        if (err.response?.status === 401) {
+            alert("⛔ 인증이 만료되었습니다. 다시 로그인해주세요.");
+            localStorage.removeItem("token");
+            window.location.href = "/login";
+        }
+        return Promise.reject(err);
+    }
+);
 
-// 로그인 API
-export const loginWithGoogle = async (token) => {
-    return await API.post("/auth/google", { token });
-};
+//  Auth 관련
+export const loginWithGoogle = async (code) =>
+    await API.post("/auth/google", { code });
 
-//  현재 로그인한 사용자 정보 가져오기
-export const fetchUserProfile = async (email) => {
-    return await API.get("/user/me", {
-        params: { email }
-    });
-};
-// 사진 업로드 API
-export const uploadPhoto = async (formData) => {
-    return await API.post("/photos/upload", formData, {
+export const getUserProfile = async (email) =>
+    await API.get("/user/me", { params: { email } });
+
+export const deleteUserAccount = async (userId) =>
+    await API.delete(`/user/delete/${userId}`);
+
+//  사진 관련
+export const getPhotos = async (user_id) =>
+    await API.get("/photos", { params: { user_id } });
+
+export const uploadPhoto = async (formData) =>
+    await API.post("/photos/upload", formData, {
         headers: { "Content-Type": "multipart/form-data" },
     });
-};
-//  여러 장 사진 업로드 API
-export const uploadMultiplePhotos = async (formData) => {
-    return await API.post("/photos/upload-multiple", formData, {
+
+export const uploadMultiplePhotos = async (formData) =>
+    await API.post("/photos/upload-multiple", formData, {
         headers: { "Content-Type": "multipart/form-data" },
     });
-};
 
-//  업로드된 사진 목록 가져오기
-export const fetchPhotos = async (user_id) => {
-    return await API.get("/photos", {
-        params: { user_id }
-    });
-};
+export const deletePhotoById = async (photoId) =>
+    await API.delete(`/photos/${photoId}`);
 
-//  사진 삭제 API
-export const deletePhoto = async (photoId) => {
-    return await API.delete(`/photos/${photoId}`);
-};
+// 자세 측정 관련
+export const savePostureResult = async (payload) =>
+    await API.post("/posture/save", payload);
 
+export const getPostureHistory = async (user_id) =>
+    await API.get("/posture/history", { params: { user_id } });
 
-// 날짜별 목각도 요약
-export const getAngleTrend = async (user_id, date) => {
-    return await API.get('/posture/angle-trend', {
-        params: { user_id, date }
-    });
-};
+export const getLatestPosture = async (user_id) =>
+    await API.get(`/posture/latest/${user_id}`);
 
+export const getTodaySummary = async () =>
+    await API.get("/posture/summary/today");
 
+export const getDailySummary = async () =>
+    await API.get("/posture/summary");
 
-
+export const getAngleTrend = async (user_id, date) =>
+    await API.get("/posture/angle-trend", { params: { user_id, date } });
 
 export default API;
