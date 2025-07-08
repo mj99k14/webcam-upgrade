@@ -5,6 +5,16 @@ const API = axios.create({
     withCredentials: true, // 쿠키 인증 정보 포함
 });
 
+//모든 요청에 자동으로jwt 토근 붙이기
+API.interceptors.request.use((config) => {
+    const token = localStorage.getItem("token");
+    if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+});
+
+
 // 로그인 API
 export const loginWithGoogle = async (token) => {
     return await API.post("/auth/google", { token });
