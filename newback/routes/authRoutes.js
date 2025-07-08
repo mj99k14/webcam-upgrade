@@ -13,8 +13,6 @@ router.post("/google", async (req, res) => {
             return res.status(400).json({ success: false, message: "인증 코드가 없습니다." });
         }
 
-
-
         // 토큰 요청
         const tokenResponse = await axios.post(
             "https://oauth2.googleapis.com/token",
