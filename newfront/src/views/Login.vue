@@ -5,11 +5,7 @@
       <div class="subtitle">Google 계정으로 간편하게 시작하세요</div>
 
       <button class="google-btn" @click="redirectToGoogle">
-        <img
-          src="https://developers.google.com/identity/images/g-logo.png"
-          alt="Google logo"
-          class="google-icon"
-        />
+        <img src="https://developers.google.com/identity/images/g-logo.png" alt="Google logo" class="google-icon" />
         <span>Google로 로그인</span>
       </button>
     </div>
@@ -19,7 +15,7 @@
 <script setup>
 const redirectToGoogle = () => {
   const clientId = "446715005253-c6g8ue0ibnj7s7gusshngdjloe36dn5v.apps.googleusercontent.com";
-  const redirectUri = "http://localhost:5173/auth/callback";
+  const redirectUri = import.meta.env.VITE_GOOGLE_REDIRECT_URI; // 
   const scope = "profile email";
   const responseType = "code";
   const accessType = "offline";
@@ -28,6 +24,7 @@ const redirectToGoogle = () => {
   window.location.href = url;
 };
 </script>
+
 <style scoped>
 html,
 body {
@@ -65,6 +62,7 @@ body {
     opacity: 0;
     transform: translateY(24px);
   }
+
   100% {
     opacity: 1;
     transform: translateY(0);
@@ -111,5 +109,3 @@ body {
   height: 20px;
 }
 </style>
-
-
