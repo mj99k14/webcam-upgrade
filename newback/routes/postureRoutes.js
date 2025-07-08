@@ -4,6 +4,7 @@ const path = require("path");
 const fs = require("fs");
 const postureController = require("../controllers/postureController");
 const { getDailyPostureChart } = require('../controllers/postureController');
+const verifyToken = require("../middleware/auth"); // ? JWT 인증 미들웨어 추가
 
 const router = express.Router();
 
@@ -20,27 +21,17 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 
-// ? 측정 결과 저장
-router.post("/save", upload.single("photo"), postureController.savePostureResult);
+//  보호된 API들에 verifyToken 미들웨어 추가
+router.post("/save", verifyToken, upload.single("photo"), postureController.savePostureResult);
 
-// ? 측정 이력 조회
-router.get("/history", postureController.getPostureHistory);
+router.get("/history", verifyToken, postureController.getPostureHistory);
+router.get("/latest/:userId", verifyToken, postureController.getLatestPosture);
+router.get("/summary/today", verifyToken, postureController.getTodaySummary);
+router.get("/summary", verifyToken, postureController.getDailySummary);
+router.get("/daily-chart", verifyToken, getDailyPostureChart);
+router.get("/angle-trend", verifyToken, postureController.getAngleTrend);
 
-// ? 최신 측정 결과 조회
-router.get("/latest/:userId", postureController.getLatestPosture);
-
-// ? 오늘 요약
-router.get('/today-summary', postureController.getTodaySummary);
-
-// ? 날짜별 그래프 데이터
-router.get('/daily-chart', getDailyPostureChart);
-
-// ? 날짜별 텍스트 요약 (이게 누락돼 있었음)
-router.get('/summary', postureController.getDailySummary);
-
-router.get("/angle-trend", postureController.getAngleTrend);
-
-// ? 연결 확인용 ping
+//  ping은 인증 없이 허용
 router.get("/ping", (req, res) => {
     res.json({ success: true, message: "pong" });
 });

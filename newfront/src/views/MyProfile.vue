@@ -79,6 +79,7 @@ export default {
     const bestFrameUrl = ref(null);
     const worstFrameUrl = ref(null);
     const showSummaryModal = ref(false);
+    const postureHistory = ref([]);
 
     const toKoreanDate = (datetime) => {
       const date = new Date(datetime);
@@ -123,6 +124,7 @@ export default {
         if (res.data.success) {
           user.value = res.data.user;
           await fetchPhotos();
+          await fetchPostureHistory();
         }
       } catch (err) {
         console.error("❌ 사용자 정보 오류:", err);
@@ -222,6 +224,22 @@ export default {
         }
       }
     };
+    const fetchPostureHistory = async () => {
+      try {
+        const res = await API.get(`/posture/history`, {
+          params: { user_id: user.value.id },
+        });
+        if (res.data.success) {
+          postureHistory.value = res.data.data;
+          console.log("📦 자세 이력:", postureHistory.value);
+        } else {
+          console.warn("⚠️ 자세 이력 없음:", res.data.message);
+        }
+      } catch (err) {
+        console.error("🚨 자세 이력 불러오기 실패:", err);
+      }
+    };
+
 
     const logout = () => {
       localStorage.removeItem("token");
@@ -309,5 +327,36 @@ export default {
   flex: 1.5;
   padding: 24px 32px;
   box-sizing: border-box;
+}
+
+
+.summary-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 18px;
+  font-weight: bold;
+  color: white;
+  background-color: #1976d2;
+  padding: 14px 28px;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transition: background-color 0.3s, transform 0.2s;
+  margin: 24px auto;
+
+}
+
+
+.summary-btn:hover {
+  background-color: #1565c0;
+  transform: translateY(-2px);
+}
+
+/* 자세 분석 요약 보기 중앙 배치*/
+.card-inner.main {
+  text-align: center;
 }
 </style>
