@@ -1,4 +1,4 @@
-// ✅ routes/photoRoutes.js
+//  routes/photoRoutes.js
 const express = require("express");
 const multer = require("multer");
 const path = require("path");
@@ -18,7 +18,7 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 
-// ✅ 사진 업로드 API (단일)
+// 사진 업로드 API (단일)
 router.post("/upload", (req, res) => {
     upload.single("photo")(req, res, async (err) => {
         if (err) return res.status(500).json({ success: false, message: "파일 업로드 오류" });
@@ -45,7 +45,7 @@ router.post("/upload", (req, res) => {
     });
 });
 
-// ✅ 사진 업로드 API (best/worst 한쌍)
+// 사진 업로드 API (best/worst 한쌍)
 router.post("/upload-pair", upload.fields([
     { name: "best", maxCount: 1 },
     { name: "worst", maxCount: 1 }
@@ -91,7 +91,7 @@ router.post("/upload-pair", upload.fields([
     }
 });
 
-// ✅ 사진 목록
+// 사진 목록
 router.get("/", async (req, res) => {
     const { user_id } = req.query;
     if (!user_id) return res.status(400).json({ success: false, message: "user_id가 필요합니다." });
@@ -106,7 +106,7 @@ router.get("/", async (req, res) => {
     }
 });
 
-// ✅ 타입별 사진 필터
+//  타입별 사진 필터
 router.get("/filter", async (req, res) => {
     const { user_id, type } = req.query;
     if (!user_id || !type) return res.status(400).json({ success: false, message: "user_id 또는 type이 누락됨" });
@@ -121,7 +121,7 @@ router.get("/filter", async (req, res) => {
     }
 });
 
-// ✅ 날짜별 그룹
+// 날짜별 그룹
 router.get("/grouped-by-date", async (req, res) => {
     const { user_id } = req.query;
     if (!user_id) return res.status(400).json({ success: false, message: "user_id 필요" });
@@ -148,7 +148,7 @@ router.get("/grouped-by-date", async (req, res) => {
 });
 
 
-// ✅ 사진 삭제 + 연결된 측정 결과(posture_results)도 같이 삭제
+//  사진 삭제 + 연결된 측정 결과(posture_results)도 같이 삭제
 router.delete("/:id", async (req, res) => {
     try {
         const { id } = req.params;
@@ -159,7 +159,7 @@ router.delete("/:id", async (req, res) => {
         );
         if (!photo) return res.status(404).json({ success: false, message: "사진 없음" });
 
-        // 📁 실제 파일 삭제
+        // 실제 파일 삭제
         const relativePath = photo.photo_url.replace(/^\/+/, '');
         const filePath = path.join(uploadBasePath, relativePath);
         if (fs.existsSync(filePath)) {
@@ -167,7 +167,7 @@ router.delete("/:id", async (req, res) => {
             console.log("🗑️ 파일 삭제:", filePath);
         }
 
-        // ✅ posture_results에서 연결된 best/worst 사진만 NULL 처리
+        //  posture_results에서 연결된 best/worst 사진만 NULL 처리
         await db.promise().query(
             `UPDATE posture_results SET best_photo_id = NULL WHERE best_photo_id = ?`,
             [id]
@@ -177,7 +177,7 @@ router.delete("/:id", async (req, res) => {
             [id]
         );
 
-        // ✅ cam_photos 삭제
+        // cam_photos 삭제
         await db.promise().query("DELETE FROM cam_photos WHERE id = ?", [id]);
 
         res.json({ success: true, message: "📸 사진 및 연동 해제 완료" });

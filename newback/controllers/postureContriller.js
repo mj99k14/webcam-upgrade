@@ -1,6 +1,6 @@
 const db = require("../config/database");
 
-// ✅ 측정 결과 저장
+// 측정 결과 저장
 const savePostureResult = async (req, res) => {
     try {
         const {
@@ -55,10 +55,10 @@ const savePostureResult = async (req, res) => {
     }
 };
 
-// ✅ 날짜별 best/worst 목각도 조회 (Chart용)
+//  날짜별 best/worst 목각도 조회 (Chart용)
 const getAngleTrend = async (req, res) => {
     const { user_id, date } = req.query;
-    console.log("📌 angle-trend 요청 받음:", user_id, date); // ✅ 로그 찍기
+    console.log("📌 angle-trend 요청 받음:", user_id, date);
 
 
     if (!user_id || !date) {
@@ -91,7 +91,7 @@ const getAngleTrend = async (req, res) => {
         return res.status(500).json({ success: false, message: "서버 오류", error: err.message });
     }
 };
-// ✅ 측정 이력 조회
+// 측정 이력 조회
 const getPostureHistory = async (req, res) => {
     const { user_id } = req.query;
 
@@ -118,7 +118,7 @@ const getPostureHistory = async (req, res) => {
 };
 
 
-// ✅ 최신 측정 결과 (DB 조회 연결)
+//  최신 측정 결과 (DB 조회 연결)
 const getLatestPosture = async (req, res) => {
     const { user_id } = req.query;
 
@@ -144,7 +144,7 @@ const getLatestPosture = async (req, res) => {
 };
 
 
-// ✅ 오늘 요약
+//  오늘 요약
 const getTodaySummary = async (req, res) => {
     const { user_id } = req.query;
     console.log("📥 user_id:", user_id);
@@ -183,7 +183,7 @@ const getTodaySummary = async (req, res) => {
     }
 };
 
-// ✅ 날짜별 요약 (DB 연결된 실제 구현)
+//  날짜별 요약 (DB 연결된 실제 구현)
 const getDailySummary = async (req, res) => {
     const { user_id } = req.query;
     if (!user_id) return res.status(400).json({ success: false, message: "user_id 필요" });

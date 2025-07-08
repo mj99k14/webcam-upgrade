@@ -1,34 +1,19 @@
 <template>
   <div class="container">
-    <!-- ✅ 왼쪽: 유저 정보 -->
+    <!--  왼쪽: 유저 정보 -->
     <div class="card-wrapper user-card">
       <div class="card-inner">
-        <UserInfo
-          :user="user"
-          :calendarStats="calendarStats"
-          @logout="logout"
-          @deleteAccount="deleteAccount"
-        />
-        <MiniCalendar
-          :selectedDate="selectedDate"
-          :stats="calendarStats" 
-          @dateSelected="handleCalendarClick"
-        />
-       <UserSummary v-if="user.id":photos="photos":userId="user.id"/>
+        <UserInfo :user="user" :calendarStats="calendarStats" @logout="logout" @deleteAccount="deleteAccount" />
+        <MiniCalendar :selectedDate="selectedDate" :stats="calendarStats" @dateSelected="handleCalendarClick" />
+        <UserSummary v-if="user.id" :photos="photos" :userId="user.id" />
       </div>
     </div>
 
-    <!-- ✅ 가운데: 측정 영역 -->
+    <!-- 가운데: 측정 영역 -->
     <div class="card-wrapper">
       <div class="card-inner main">
-        <MainPhotos
-          :cameraActive="cameraActive"
-          :bestPhoto="bestPhoto"
-          :worstPhoto="worstPhoto"
-          @startCamera="startCamera"
-          @handlePhotoUploaded="handlePhotoUploaded"
-          @openModal="openModal"
-        />
+        <MainPhotos :cameraActive="cameraActive" :bestPhoto="bestPhoto" :worstPhoto="worstPhoto"
+          @startCamera="startCamera" @handlePhotoUploaded="handlePhotoUploaded" @openModal="openModal" />
         <button class="summary-btn" @click="showSummaryModal = true">
           📊 자세 분석 요약 보기
         </button>
@@ -36,37 +21,22 @@
       </div>
     </div>
 
-    <!-- ✅ 오른쪽: 사진 목록 -->
+    <!--  오른쪽: 사진 목록 -->
     <div class="card-wrapper">
       <div class="card-inner">
-      
-        <PhotoList
-        :filteredPhotos="filteredPhotos"
-        :mainPhotoId="null"
-        :selectedPhoto="selectedPhoto"
-        :selectedDate="selectedDate" 
-        @update:selectedDate="selectedDate = $event" 
-        :formatTime="formatTime"
-        @showPhoto="showPhoto"
-        @deletePhoto="deletePhoto"
-      />
+
+        <PhotoList :filteredPhotos="filteredPhotos" :mainPhotoId="null" :selectedPhoto="selectedPhoto"
+          :selectedDate="selectedDate" @update:selectedDate="selectedDate = $event" :formatTime="formatTime"
+          @showPhoto="showPhoto" @deletePhoto="deletePhoto" />
       </div>
     </div>
 
-    <!-- ✅ 분석 요약 모달 -->
-    <SummaryStatsModal
-      v-if="showSummaryModal"
-      :photos="safePhotos"
-      :visible="showSummaryModal"
-      @close="showSummaryModal = false"
-    />
+    <!--  분석 요약 모달 -->
+    <SummaryStatsModal v-if="showSummaryModal" :photos="safePhotos" :visible="showSummaryModal"
+      @close="showSummaryModal = false" />
 
-    <!-- ✅ 사진 모달 -->
-    <PhotoModal
-      v-if="modalPhotoUrl"
-      :photoUrl="modalPhotoUrl"
-      @close="modalPhotoUrl = null"
-    />
+    <!-- 사진 모달 -->
+    <PhotoModal v-if="modalPhotoUrl" :photoUrl="modalPhotoUrl" @close="modalPhotoUrl = null" />
   </div>
 </template>
 
@@ -89,12 +59,12 @@ import MiniCalendar from '../components/calendar/MiniCalendar.vue';
 
 export default {
   props: {
-  photos: {
-    type: Array,
-    required: false,
-    default: () => []
-  }
-},
+    photos: {
+      type: Array,
+      required: false,
+      default: () => []
+    }
+  },
   components: {
     UserInfo,
     PhotoList,
@@ -120,7 +90,7 @@ export default {
     const showSummaryModal = ref(false);
 
 
-    // ✅ props.photos를 computed로 래핑
+    //  props.photos를 computed로 래핑
     const photos = ref([]);
 
 
@@ -186,39 +156,39 @@ export default {
     };
 
     const fetchPhotos = async () => {
-    if (!user.value.id) return;
+      if (!user.value.id) return;
 
-    try {
-      const res = await axios.get(`http://210.101.236.158:5000/api/photos?user_id=${user.value.id}`);
-      photos.value = [...res.data];
+      try {
+        const res = await axios.get(`http://210.101.236.158:5000/api/photos?user_id=${user.value.id}`);
+        photos.value = [...res.data];
 
-      const today = toKoreanDate(new Date());
+        const today = toKoreanDate(new Date());
 
-      // 📌 날짜별 그룹화
-      const sortedPhotos = [...photos.value].sort((a, b) => new Date(a.uploaded_at) - new Date(b.uploaded_at));
-      const todayPhotos = sortedPhotos.filter(p => toKoreanDate(p.uploaded_at) === today);
+        // 날짜별 그룹화
+        const sortedPhotos = [...photos.value].sort((a, b) => new Date(a.uploaded_at) - new Date(b.uploaded_at));
+        const todayPhotos = sortedPhotos.filter(p => toKoreanDate(p.uploaded_at) === today);
 
-      if (todayPhotos.length > 0) {
-        selectedDate.value = today;
-        selectedPhoto.value = todayPhotos[todayPhotos.length - 1]; // ✅ 오늘 마지막 사진
-      } else if (sortedPhotos.length > 0) {
-        const latestDate = toKoreanDate(sortedPhotos[sortedPhotos.length - 1].uploaded_at);
-        const latestPhotos = sortedPhotos.filter(p => toKoreanDate(p.uploaded_at) === latestDate);
+        if (todayPhotos.length > 0) {
+          selectedDate.value = today;
+          selectedPhoto.value = todayPhotos[todayPhotos.length - 1]; // 오늘 마지막 사진
+        } else if (sortedPhotos.length > 0) {
+          const latestDate = toKoreanDate(sortedPhotos[sortedPhotos.length - 1].uploaded_at);
+          const latestPhotos = sortedPhotos.filter(p => toKoreanDate(p.uploaded_at) === latestDate);
 
-        selectedDate.value = latestDate;
-        selectedPhoto.value = latestPhotos[latestPhotos.length - 1]; // ✅ 최신 날짜 마지막 사진
-      } else {
-        selectedPhoto.value = null;
+          selectedDate.value = latestDate;
+          selectedPhoto.value = latestPhotos[latestPhotos.length - 1]; // 최신 날짜 마지막 사진
+        } else {
+          selectedPhoto.value = null;
+        }
+
+        // 📌 best / worst 사진 설정
+        bestPhoto.value = photos.value.find(p => p.type === 'best') || null;
+        worstPhoto.value = photos.value.find(p => p.type === 'worst') || null;
+
+      } catch (err) {
+        console.error("🚨 사진 목록 오류:", err);
       }
-
-      // 📌 best / worst 사진 설정
-      bestPhoto.value = photos.value.find(p => p.type === 'best') || null;
-      worstPhoto.value = photos.value.find(p => p.type === 'worst') || null;
-
-    } catch (err) {
-      console.error("🚨 사진 목록 오류:", err);
-    }
-  };
+    };
 
 
     const handlePhotoUploaded = async () => {
@@ -229,15 +199,15 @@ export default {
       try {
         const res = await axios.delete(`http://210.101.236.158:5000/api/photos/${id}`);
         if (res.data.success) {
-          // ✅ 우선 로컬 상태 초기화
+          //  우선 로컬 상태 초기화
           if (bestPhoto.value?.id === id) bestPhoto.value = null;
           if (worstPhoto.value?.id === id) worstPhoto.value = null;
           if (selectedPhoto.value?.id === id) selectedPhoto.value = null;
 
-          // ✅ 사진 목록 완전히 반영된 후 fetchLatestPosture 실행
+          // 사진 목록 완전히 반영된 후 fetchLatestPosture 실행
           await fetchPhotos(); // 먼저 갱신하고
 
-          // ⏱️ 살짝 텀 두고 실행 (Vue 반응성 보장용)
+          // 살짝 텀 두고 실행 (Vue 반응성 보장용)
           setTimeout(async () => {
             await fetchLatestPosture();
 
@@ -267,7 +237,7 @@ export default {
             ? photos.value.find(p => p.id === posture.worst_photo_id)
             : null;
 
-          // ✅ 여기 꼭 추가해야 해!!
+          //  여기 꼭 추가해야 함
           bestFrameUrl.value = bestPhoto.value ? bestPhoto.value.photo_url : null;
           worstFrameUrl.value = worstPhoto.value ? worstPhoto.value.photo_url : null;
         } else {
@@ -289,70 +259,70 @@ export default {
       selectedDate.value = date;
     };
 
-      
-  const showPhoto = (photo, openModal = true) => {
-    selectedPhoto.value = photo;
-    if (openModal && photo?.photo_url) {
-      modalPhotoUrl.value = `http://210.101.236.158:5000${photo.photo_url}`;
-    }
-  };
 
-
-  const deleteAccount = async () => {
-    if (confirm("정말 회원 탈퇴를 진행하시겠습니까?")) {
-      try {
-        const res = await axios.delete(`http://210.101.236.158:5000/api/user/delete/${user.value.id}`);
-        if (res.data.success) {
-          localStorage.removeItem("token");
-          router.push("/login");
-        }
-      } catch {
-        alert("회원 탈퇴 중 오류 발생");
+    const showPhoto = (photo, openModal = true) => {
+      selectedPhoto.value = photo;
+      if (openModal && photo?.photo_url) {
+        modalPhotoUrl.value = `http://210.101.236.158:5000${photo.photo_url}`;
       }
-    }
-  };
+    };
+
+
+    const deleteAccount = async () => {
+      if (confirm("정말 회원 탈퇴를 진행하시겠습니까?")) {
+        try {
+          const res = await axios.delete(`http://210.101.236.158:5000/api/user/delete/${user.value.id}`);
+          if (res.data.success) {
+            localStorage.removeItem("token");
+            router.push("/login");
+          }
+        } catch {
+          alert("회원 탈퇴 중 오류 발생");
+        }
+      }
+    };
 
 
 
 
-  const logout = () => {
-    localStorage.removeItem("token");
-    router.push("/login");
-  };
+    const logout = () => {
+      localStorage.removeItem("token");
+      router.push("/login");
+    };
 
-  const startCamera = () => cameraActive.value = true;
+    const startCamera = () => cameraActive.value = true;
 
-  onMounted(async () => {
-    await fetchUser();
-    selectedDate.value = toKoreanDate(new Date());
-  });
+    onMounted(async () => {
+      await fetchUser();
+      selectedDate.value = toKoreanDate(new Date());
+    });
 
-  return {
-  user,
-  photos,
-  safePhotos,
-  bestPhoto,
-  worstPhoto,
-  selectedPhoto,
-  deletePhoto,
-  showPhoto,
-  deleteAccount,
-  logout,
-  startCamera,
-  cameraActive,
-  handlePhotoUploaded,
-  formatTime,
-  selectedDate,
-  filteredPhotos,
-  modalPhotoUrl,
-  openModal,
-  calendarStats,
-  fetchLatestPosture,
-  bestFrameUrl,
-  worstFrameUrl,
-  showSummaryModal,
-  handleCalendarClick,
-};
+    return {
+      user,
+      photos,
+      safePhotos,
+      bestPhoto,
+      worstPhoto,
+      selectedPhoto,
+      deletePhoto,
+      showPhoto,
+      deleteAccount,
+      logout,
+      startCamera,
+      cameraActive,
+      handlePhotoUploaded,
+      formatTime,
+      selectedDate,
+      filteredPhotos,
+      modalPhotoUrl,
+      openModal,
+      calendarStats,
+      fetchLatestPosture,
+      bestFrameUrl,
+      worstFrameUrl,
+      showSummaryModal,
+      handleCalendarClick,
+    };
 
 
   }
@@ -403,14 +373,14 @@ export default {
   max-width: 280px;
 }
 
-.container > .card-wrapper:nth-child(2) {
+.container>.card-wrapper:nth-child(2) {
   flex: 2.5;
   min-height: 1000px;
   display: flex;
   flex-direction: column;
 }
 
-.container > .card-wrapper:nth-child(3) {
+.container>.card-wrapper:nth-child(3) {
   flex: 1.2;
   padding: 24px 32px;
   box-sizing: border-box;
@@ -465,6 +435,7 @@ export default {
   font-size: 24px;
   margin-bottom: 2px;
 }
+
 /* ✅ 파란 배경 박스 */
 .summary-wrapper {
   width: 100%;
@@ -475,7 +446,8 @@ export default {
 
 /* ✅ 흰색 안쪽 박스 */
 .inner-white-card {
-  max-width: 1800px;       /* ✅ 넓게 확장 */
+  max-width: 1800px;
+  /* ✅ 넓게 확장 */
   margin: 0 auto;
   padding: 40px 48px;
   background-color: #ffffff;
@@ -493,7 +465,8 @@ export default {
   margin-top: 16px;
   border: none;
   border-radius: 8px;
-  background-color: #1976d2; /* 파란색 배경 */
+  background-color: #1976d2;
+  /* 파란색 배경 */
   color: white;
   font-size: 16px;
   font-weight: 600;
@@ -503,8 +476,8 @@ export default {
 }
 
 .summary-btn:hover {
-  background-color: #1565c0; /* hover 시 더 진한 파랑 */
+  background-color: #1565c0;
+  /* hover 시 더 진한 파랑 */
   transform: translateY(-2px);
 }
-
 </style>

@@ -27,7 +27,7 @@ router.get("/me", async (req, res) => {
     }
 });
 
-// ✅ 회원 탈퇴 (사용자 정보 + 사진 + 실제 파일 삭제)
+// 회원 탈퇴 (사용자 정보 + 사진 + 실제 파일 삭제)
 router.delete("/delete/:userId", async (req, res) => {
     try {
         const userId = req.params.userId;
@@ -43,10 +43,10 @@ router.delete("/delete/:userId", async (req, res) => {
 
         // 3. 파일 삭제 시도
         for (const photo of photos) {
-            const relativePath = photo.photo_url.replace(/^\/+/, ''); // ✅ 앞에 있는 슬래시 여러 개 제거
+            const relativePath = photo.photo_url.replace(/^\/+/, ''); //  앞에 있는 슬래시 여러 개 제거
             const filePath = path.join(uploadBasePath, relativePath);
             try {
-                await fs.promises.unlink(filePath); // ✅ 비동기 삭제
+                await fs.promises.unlink(filePath); //  비동기 삭제
                 console.log("🗑️ 삭제됨:", filePath);
             } catch (err) {
                 console.warn("⚠️ 파일 삭제 실패:", filePath, err.message);
