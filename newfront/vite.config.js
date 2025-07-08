@@ -4,10 +4,11 @@ import path from "path";
 import rollupNodePolyFill from "rollup-plugin-polyfill-node";
 
 export default defineConfig({
+  base: "./",
   plugins: [vue()],
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "src"), // ✅ '@/...' 를 'src/...'로 인식시킴
+      "@": path.resolve(__dirname, "src"),
     },
   },
   define: {
