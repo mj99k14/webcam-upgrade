@@ -164,7 +164,7 @@ router.delete("/:id", async (req, res) => {
         const filePath = path.join(uploadBasePath, relativePath);
         if (fs.existsSync(filePath)) {
             fs.unlinkSync(filePath);
-            console.log("🗑️ 파일 삭제:", filePath);
+            console.log(" 파일 삭제:", filePath);
         }
 
         //  posture_results에서 연결된 best/worst 사진만 NULL 처리
@@ -180,10 +180,10 @@ router.delete("/:id", async (req, res) => {
         // cam_photos 삭제
         await db.promise().query("DELETE FROM cam_photos WHERE id = ?", [id]);
 
-        res.json({ success: true, message: "📸 사진 및 연동 해제 완료" });
+        res.json({ success: true, message: " 사진 및 연동 해제 완료" });
 
     } catch (error) {
-        console.error("🚨 삭제 오류:", error);
+        console.error(" 삭제 오류:", error);
         res.status(500).json({ success: false, message: "서버 오류" });
     }
 });

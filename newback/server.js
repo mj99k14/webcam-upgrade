@@ -11,7 +11,7 @@ const cookieParser = require("cookie-parser");
 const authRoutes = require("./routes/authRoutes");
 const userRoutes = require("./routes/userRoutes");
 const photoRoutes = require("./routes/photoRoutes");
-const postureRoutes = require("./routes/postureRoutes"); // 자세 측정 라우트
+const postureRoutes = require("./routes/postureRoutes");
 
 
 const app = express();

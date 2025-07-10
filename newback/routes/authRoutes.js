@@ -31,7 +31,7 @@ router.post("/google", async (req, res) => {
         );
 
 
-        console.log("✅ 토큰 응답:", tokenResponse.data);
+        console.log(" 토큰 응답:", tokenResponse.data);
         const { access_token } = tokenResponse.data;
 
         //  사용자 정보 요청
@@ -39,7 +39,7 @@ router.post("/google", async (req, res) => {
             headers: { Authorization: `Bearer ${access_token}` },
         });
 
-        console.log("✅ 사용자 정보:", data);
+        console.log(" 사용자 정보:", data);
         const { email, name, picture } = data;
         const google_id = data.id;
 
@@ -57,9 +57,9 @@ router.post("/google", async (req, res) => {
             user_id = insertResult.insertId;
         }
 
-        // ✅ JWT 발급
+        //  JWT 발급
         const jwtToken = jwt.sign({ user_id, email }, process.env.JWT_SECRET, { expiresIn: "1h" });
-        console.log("✅ 발급된 JWT 토큰:", jwtToken);
+        console.log(" 발급된 JWT 토큰:", jwtToken);
 
         return res.json({
             success: true,
@@ -67,7 +67,7 @@ router.post("/google", async (req, res) => {
             user: { user_id, email, name, picture },
         });
     } catch (error) {
-        console.error("❌ Google 로그인 처리 오류:", error.response?.data || error.message);
+        console.error(" Google 로그인 처리 오류:", error.response?.data || error.message);
         return res.status(500).json({
             success: false,
             message: "서버 오류 발생",

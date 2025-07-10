@@ -21,7 +21,7 @@ const savePostureResult = async (req, res) => {
         if (!best_photo_id || !worst_photo_id) {
             return res.status(400).json({
                 success: false,
-                message: "❌ 사진 ID가 누락되었습니다."
+                message: " 사진 ID가 누락되었습니다."
             });
         }
 
@@ -50,9 +50,9 @@ const savePostureResult = async (req, res) => {
 
         await db.promise().query(insertQuery, values);
 
-        return res.json({ success: true, message: "✅ 측정 결과 저장 완료" });
+        return res.json({ success: true, message: " 측정 결과 저장 완료" });
     } catch (err) {
-        console.error("🔥 측정 저장 에러:", err);
+        console.error("측정 저장 에러:", err);
         return res.status(500).json({ success: false, message: "서버 오류", error: err.message });
     }
 };
@@ -60,7 +60,7 @@ const savePostureResult = async (req, res) => {
 const getAngleTrend = async (req, res) => {
     const user_id = req.user.user_id;
     const { date } = req.query;
-    console.log("📌 angle-trend 요청 받음:", user_id, date);
+    console.log(" angle-trend 요청 받음:", user_id, date);
 
     if (!date) {
         return res.status(400).json({ success: false, message: "date 필요" });
@@ -84,7 +84,7 @@ const getAngleTrend = async (req, res) => {
 
         return res.json({ success: true, angles: result });
     } catch (err) {
-        console.error("❌ best/worst 각도 불러오기 실패:", err);
+        console.error(" best/worst 각도 불러오기 실패:", err);
         return res.status(500).json({ success: false, message: "서버 오류", error: err.message });
     }
 };
@@ -105,7 +105,7 @@ const getPostureHistory = async (req, res) => {
 
         return res.json({ success: true, history: rows });
     } catch (err) {
-        console.error("❌ 측정 이력 조회 실패:", err);
+        console.error("측정 이력 조회 실패:", err);
         return res.status(500).json({ success: false, message: "서버 오류", error: err.message });
     }
 };
@@ -121,7 +121,7 @@ const getLatestPosture = async (req, res) => {
 
         return res.json({ success: true, data: rows[0] || null });
     } catch (err) {
-        console.error("❌ 최신 결과 조회 실패:", err);
+        console.error(" 최신 결과 조회 실패:", err);
         return res.status(500).json({ success: false, message: "서버 오류" });
     }
 };
@@ -154,7 +154,7 @@ const getTodaySummary = async (req, res) => {
 
         res.json({ success: true, data: result });
     } catch (err) {
-        console.error("🔥 getTodaySummary 서버 오류:", err);
+        console.error(" getTodaySummary 서버 오류:", err);
         res.status(500).json({ success: false, message: "서버 오류", error: err.message });
     }
 };
@@ -185,13 +185,13 @@ const getDailySummary = async (req, res) => {
 
         res.json({ success: true, data: summaries });
     } catch (err) {
-        console.error("❌ 날짜별 요약 실패:", err);
+        console.error(" 날짜별 요약 실패:", err);
         res.status(500).json({ success: false, message: "서버 오류" });
     }
 };
 
 const getDailyPostureChart = (req, res) => {
-    res.send("📈 차트용 데이터 반환 테스트");
+    res.send("차트용 데이터 반환 테스트");
 };
 
 const deletePhoto = async (req, res) => {
