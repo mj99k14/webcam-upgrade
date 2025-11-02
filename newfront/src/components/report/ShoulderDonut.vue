@@ -1,6 +1,6 @@
 <template>
   <div class="donut-wrapper">
-    <!-- ✅ 도넛 그래프 + 중앙 텍스트 -->
+    <!--  도넛 그래프 + 중앙 텍스트 -->
     <div class="chart-container">
       <canvas ref="shoulderChart"></canvas>
       <div class="center-text">
@@ -9,9 +9,9 @@
       </div>
     </div>
 
-    <!-- ✅ 분석 요약 카드 -->
+    <!--  분석 요약 카드 -->
     <div class="summary-card" v-if="photos.length > 0">
-      <p class="card-title">📋 어깨 분석 결과</p>
+      <p class="card-title"> 어깨 분석 결과</p>
       <p>• 평균 어깨 기울기: {{ avgDiff }}°</p>
       <p>• 수평 비율: {{ balancedRatio }}%</p>
       <p>• {{ analysisText }}</p>
@@ -28,7 +28,7 @@ Chart.register(DoughnutController, ArcElement, Tooltip, Legend)
 const props = defineProps(['photos'])
 const shoulderChart = ref(null)
 
-// ✅ 데이터 정제
+//  데이터 정제
 const diffs = computed(() =>
   props.photos
     .filter(p => p.shoulder_diff !== null && !isNaN(p.shoulder_diff))
@@ -60,7 +60,7 @@ const balancedRatio = computed(() =>
 )
 
 
-// ✅ 도넛 중앙 텍스트 - 세분화
+//  도넛 중앙 텍스트 - 세분화
 const directionLabel = computed(() => {
   if (balancedRatio.value >= 50) return '수평 (정상)'
   if (highRight.value > highLeft.value) return '오른쪽 어깨↑'
@@ -72,7 +72,7 @@ const angleText = computed(() => `${avgDiff.value}°`)
 const showAngle = computed(() => balancedRatio.value < 50)
 
 
-// ✅ 분석 텍스트 - 세분화
+//  분석 텍스트 - 세분화
 const analysisText = computed(() => {
   if (props.photos.length === 0) return '측정된 데이터가 없습니다.'
   if (balancedRatio.value >= 50) return '어깨 기울기 정상'
@@ -82,7 +82,7 @@ const analysisText = computed(() => {
 })
 
 
-// ✅ 도넛 그래프 생성
+//  도넛 그래프 생성
 onMounted(() => {
   const ctx = shoulderChart.value.getContext('2d')
   const unbalanced = props.photos.length - balanced.value

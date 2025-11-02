@@ -19,7 +19,7 @@ API.interceptors.response.use(
     (res) => res,
     (err) => {
         if (err.response?.status === 401) {
-            alert("⛔ 인증이 만료되었습니다. 다시 로그인해주세요.");
+            alert(" 인증이 만료되었습니다. 다시 로그인해주세요.");
             localStorage.removeItem("token");
             window.location.href = "/login";
         }

@@ -2,7 +2,7 @@
   <div class="loading-container">
     <div class="loader"></div>
     <h2>로그인 처리 중입니다...</h2>
-    <p>잠시만 기다려 주세요 😊</p>
+    <p>잠시만 기다려 주세요 </p>
   </div>
 </template>
 
@@ -17,7 +17,7 @@ onMounted(async () => {
   const code = route.query.code;
 
   if (!code) {
-    alert("❌ 인증 코드가 없습니다.");
+    alert(" 인증 코드가 없습니다.");
     router.push("/login");
     return;
   }
@@ -34,7 +34,7 @@ onMounted(async () => {
     if (data.success) {
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
-      alert("✅ 로그인 성공!");
+      alert(" 로그인 성공!");
       router.push("/myprofile");
     } else if (data.message === "회원가입이 필요합니다.") {
       const confirmJoin = confirm("등록된 정보가 없습니다. 회원가입 하시겠습니까?");
@@ -51,11 +51,11 @@ onMounted(async () => {
         router.push("/login");
       }
     } else {
-      alert("❌ 로그인 실패: " + data.message);
+      alert(" 로그인 실패: " + data.message);
       router.push("/login");
     }
   } catch (err) {
-    console.error("❌ 로그인 처리 중 오류:", err);
+    console.error(" 로그인 처리 중 오류:", err);
     alert("서버와의 통신 중 오류가 발생했습니다.");
     router.push("/login");
   }

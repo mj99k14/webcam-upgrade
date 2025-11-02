@@ -46,14 +46,14 @@
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
   }
   
-  /* ❌ 닫기 버튼 스타일 */
+  /*  닫기 버튼 스타일 */
   .close-button {
   position: absolute;
   top: 16px;
   right: 20px;
   background: transparent;
   border: none;
-  font-size: 36px; /* 👈 크기 키움 */
+  font-size: 36px; 
   font-weight: bold;
   color: #333; /* 더 진한 회색 */
   cursor: pointer;

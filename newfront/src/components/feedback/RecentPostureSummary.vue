@@ -4,12 +4,12 @@
 
     <div class="summary-cards">
       <div class="summary-card good">
-        <p class="label">✅ 가장 좋은 날</p>
+        <p class="label"> 가장 좋은 날</p>
         <p class="value">{{ bestDay.date }}</p>
         <p>{{ bestDay.neckAngle }}°, {{ bestDay.shoulderStatus }}</p>
       </div>
       <div class="summary-card bad">
-        <p class="label">⚠️ 가장 나쁜 날</p>
+        <p class="label"> 가장 나쁜 날</p>
         <p class="value">{{ worstDay.date }}</p>
         <p>{{ worstDay.neckAngle }}°, {{ worstDay.shoulderStatus }}</p>
       </div>
@@ -17,9 +17,9 @@
 
     <div class="text-feedback">
       <p v-if="worstDay.neckAngle > 140">
-        📛 최근 목 각도가 조금 높아졌어요. 거북목 주의!
+         최근 목 각도가 조금 높아졌어요. 거북목 주의!
       </p>
-      <p v-else>👍 최근에는 목 자세가 안정적인 편이에요.</p>
+      <p v-else> 최근에는 목 자세가 안정적인 편이에요.</p>
     </div>
   </div>
 </template>

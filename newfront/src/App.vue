@@ -20,21 +20,21 @@ onMounted(() => {
       const now = Date.now();
 
       if (now > exp) {
-        alert("⏰ 로그인 세션이 만료되었습니다. 다시 로그인해주세요.");
+        alert(" 로그인 세션이 만료되었습니다. 다시 로그인해주세요.");
         localStorage.removeItem("token");
         localStorage.removeItem("user");
         router.push("/login");
       } else {
         // 남은 시간 후 자동 로그아웃 예약
         setTimeout(() => {
-          alert("⏰ 세션이 만료되어 로그아웃되었습니다.");
+          alert(" 세션이 만료되어 로그아웃되었습니다.");
           localStorage.removeItem("token");
           localStorage.removeItem("user");
           router.push("/login");
         }, exp - now);
       }
     } catch (err) {
-      console.error("❌ JWT 토큰 파싱 오류:", err);
+      console.error(" JWT 토큰 파싱 오류:", err);
       localStorage.removeItem("token");
       localStorage.removeItem("user");
       router.push("/login");
@@ -43,7 +43,6 @@ onMounted(() => {
 });
 </script>
 
-<!-- ❌ scoped 제거 -->
 <style>
 body,
 #app {

@@ -39,9 +39,9 @@ export default {
   padding: 16px;
   border-radius: 16px;
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
-  width: 40vw;           /* ✅ 전체 너비의 50% */
+  width: 40vw;           /*  전체 너비의 50% */
   height: auto;
-  max-height: 60vh;      /* ✅ 화면 세로 최대 70% */
+  max-height: 60vh;      /*  화면 세로 최대 70% */
   display: flex;
   align-items: center;
   justify-content: center;

@@ -1,32 +1,32 @@
 <template>
   <div class="summary-cards">
     <div class="card">
-      📸 총 촬영일<br /><strong>{{ dailyStats.length }}</strong>일
+       총 촬영일<br /><strong>{{ dailyStats.length }}</strong>일
     </div>
 
     <div class="card orange">
-      ⚠️ 평균 목 각도<br /><strong>{{ Number(overallAverage).toFixed(1) }}°</strong>
+       평균 목 각도<br /><strong>{{ Number(overallAverage).toFixed(1) }}°</strong>
     </div>
 
    <div class="card orange">
-  ⚠️ 거북목 비율<br /><strong>{{ Number(highAngleRatio).toFixed(1) }}%</strong>
+      거북목 비율<br /><strong>{{ Number(highAngleRatio).toFixed(1) }}%</strong>
   </div>
 
 
     <div class="card blue">
-      ↔️ 평균 어꺠 기울기<br /><strong>{{ Number(shoulderAvg).toFixed(1) }}px</strong>
+      ↔ 평균 어꺠 기울기<br /><strong>{{ Number(shoulderAvg).toFixed(1) }}px</strong>
     </div>
 
     <div class="card gray">
-      🕒 최근 촬영일<br /><strong>{{ lastTaken }}</strong>
+       최근 촬영일<br /><strong>{{ lastTaken }}</strong>
     </div>
 
     <div class="card green">
-      📀 최대 목 각도<br /><strong>{{ Number(maxNeckAngle).toFixed(1) }}°</strong>
+       최대 목 각도<br /><strong>{{ Number(maxNeckAngle).toFixed(1) }}°</strong>
     </div>
 
     <div class="card purple">
-      🧭 어깨 비대칭<br />
+       어깨 비대칭<br />
       <template v-if="shoulderRatio.left + shoulderRatio.right > 0">
         <strong>좌: {{ shoulderRatio.left }}%</strong> / <strong>우: {{ shoulderRatio.right }}%</strong>
       </template>

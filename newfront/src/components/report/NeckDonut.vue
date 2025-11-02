@@ -1,6 +1,6 @@
 <template>
   <div class="donut-wrapper">
-    <!-- ✅ 도넛 + 중앙 텍스트 -->
+    <!--  도넛 + 중앙 텍스트 -->
     <div class="chart-container">
       <canvas ref="neckChart"></canvas>
       <div class="center-text">
@@ -9,9 +9,9 @@
       </div>
     </div>
 
-    <!-- ✅ 요약 카드 -->
+    <!--  요약 카드 -->
     <div class="summary-card" v-if="photos.length > 0">
-      <p class="card-title">📋 목 자세 분석</p>
+      <p class="card-title"> 목 자세 분석</p>
       <p>• 평균 목 각도: {{ averageNeckAngle }}°</p>
       <p>• 정상 비율: {{ normalRatio }}%</p>
       <p>• {{ analysisText }}</p>
@@ -28,7 +28,7 @@ Chart.register(DoughnutController, ArcElement, Tooltip, Legend)
 const props = defineProps(['photos'])
 const neckChart = ref(null)
 
-// ✅ 각도 기준으로 분석
+//  각도 기준으로 분석
 const validPhotos = computed(() =>
   props.photos.filter(p => (p.average_neck_angle ?? p.neck_angle) !== null)
 )
@@ -62,7 +62,7 @@ const analysisText = computed(() => {
   return '거북목 증상이 의심됩니다. 자세 교정이 필요합니다.'
 })
 
-// ✅ 도넛 차트 렌더링
+//  도넛 차트 렌더링
 onMounted(() => {
   const normal = normalCount.value
   const bad = validPhotos.value.length - normal

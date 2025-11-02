@@ -1,14 +1,14 @@
 <template>
-  <!-- ✅ 전체 카드 통일 -->
+  <!-- 전체 카드 통일 -->
   <div class="white-card">
     <div class="section-title-wrapper">
       <h2 class="section-title"><span class="emoji">📸</span> 사진 목록</h2>
     </div>
 
-    <!-- ✅ 선택한 사진 -->
+    <!--  선택한 사진 -->
     <div class="selected-photo-card" @click="selectedPhoto && $emit('showPhoto', selectedPhoto)">
       <h3 class="card-title">
-        📌 선택한 사진
+         선택한 사진
         <span class="badge" v-if="selectedPhoto">최근 촬영됨</span>
       </h3>
 
@@ -21,12 +21,12 @@
             class="main-selected-photo"
           />
           <div v-else class="photo-placeholder-text">
-            📷 아직 사진이 선택되지 않았습니다.
+             아직 사진이 선택되지 않았습니다.
           </div>
         </div>
 
         <p class="shoulder-status-text">
-          🦴 어깨 상태:
+           어깨 상태:
           <span :class="selectedPhoto ? getShoulderClass(selectedPhoto.shoulder_status) : 'unknown'">
             {{ selectedPhoto ? selectedPhoto.shoulder_status || '정보 없음' : '사진을 선택해주세요.' }}
           </span>
@@ -34,9 +34,9 @@
       </div>
     </div>
 
-    <!-- 📅 날짜 필터 -->
+    <!--  날짜 필터 -->
     <div class="date-filter">
-      <label for="filter-date" class="date-label">📅 날짜 필터:</label>
+      <label for="filter-date" class="date-label"> 날짜 필터:</label>
       <input
         id="filter-date"
         type="date"
@@ -46,10 +46,10 @@
       />
     </div>
 
-    <!-- 📦 자세 섹션 목록 -->
-    <p class="mini-section-title">📂 자세 분석 목록</p>
+    <!--  자세 섹션 목록 -->
+    <p class="mini-section-title"> 자세 분석 목록</p>
     <div class="posture-section-wrapper">
-      <!-- ▶️ 가장 좋은 자세 -->
+      <!--  가장 좋은 자세 -->
       <div class="section">
         <div class="section-header" @click="isBestOpen = !isBestOpen">
           <h3 class="accordion-title">
@@ -72,7 +72,7 @@
         </transition>
       </div>
 
-      <!-- ▶️ 가장 나쁜 자세 -->
+      <!--  가장 나쁜 자세 -->
       <div class="section">
         <div class="section-header" @click="isWorstOpen = !isWorstOpen">
           <h3 class="accordion-title">

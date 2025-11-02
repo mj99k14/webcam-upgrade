@@ -18,7 +18,7 @@ export default {
       shoulderAngle: null,
       isCapturing: false,
       capturedFrames: [],
-      cameraStatus: '⏳ 카메라 초기화 중...'
+      cameraStatus: ' 카메라 초기화 중...'
     };
   },
   mounted() {
@@ -76,11 +76,11 @@ export default {
 
       try {
         camera.start();
-        this.cameraStatus = "✅ 카메라 연결 성공!";
-        console.log("✅ camera.start() 성공");
+        this.cameraStatus = " 카메라 연결 성공!";
+        console.log(" camera.start() 성공");
       } catch (e) {
-        this.cameraStatus = "❌ 카메라 시작 실패!";
-        console.error("❌ camera.start() 에러", e);
+        this.cameraStatus = " 카메라 시작 실패!";
+        console.error(" camera.start() 에러", e);
       }
     },
 

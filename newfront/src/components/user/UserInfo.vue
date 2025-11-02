@@ -1,6 +1,6 @@
 <template>
   <div class="outer-wrapper">
-    <!-- 🔵 마이페이지 카드 -->
+    <!--  마이페이지 카드 -->
     <div class="card-box">
       <div class="section-title-wrapper">
         <h2 class="section-title">
@@ -57,7 +57,7 @@ const emit = defineEmits(['logout', 'deleteAccount', 'selectDate'])
   
 }
 
-/* ✅ 공통 카드 스타일 */
+/*  공통 카드 스타일 */
 .card-box,
 .calendar-card,
 .health-report-card {
@@ -74,7 +74,7 @@ const emit = defineEmits(['logout', 'deleteAccount', 'selectDate'])
   font-family: 'Noto Sans KR', sans-serif;
 }
 
-/* ✅ 마이페이지 타이틀 */
+/* 마이페이지 타이틀 */
 .section-title-wrapper {
   display: flex;
   justify-content: center;
@@ -92,7 +92,7 @@ const emit = defineEmits(['logout', 'deleteAccount', 'selectDate'])
   padding-bottom: 4px;
 }
 
-/* ✅ 마이페이지 사용자 정보 */
+/*  마이페이지 사용자 정보 */
 .user-avatar,
 .profile-img {
   width: 120px;  /* 프로필 이미지 크기 확대 */
@@ -114,7 +114,7 @@ const emit = defineEmits(['logout', 'deleteAccount', 'selectDate'])
   object-fit: cover;
 }
 
-/* ✅ 버튼 스타일 */
+/* 버튼 스타일 */
 .button-group {
   display: flex;
   justify-content: center;

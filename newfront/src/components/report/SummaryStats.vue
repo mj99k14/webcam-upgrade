@@ -1,7 +1,7 @@
 <template>
   <div class="summary-box" v-if="safePhotos.length > 0">
     <h3 class="section-title">
-      <span class="emoji">📊</span> 자세 분석 요약
+      <span class="emoji"></span> 자세 분석 요약
     </h3>
 
     <div class="charts">

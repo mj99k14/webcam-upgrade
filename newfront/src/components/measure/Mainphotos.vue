@@ -9,11 +9,11 @@
       <!--  결과 사진 -->
       <div class="result-photo-group-row" v-if="measurementFinished && (bestFrameUrl || worstFrameUrl)">
         <div v-if="bestFrameUrl" class="photo-block" @click="openModal(bestFrameUrl)">
-          <p>✅ 가장 좋은 자세 ({{ bestNeckAngle }}°)</p>
+          <p> 가장 좋은 자세 ({{ bestNeckAngle }}°)</p>
           <img :src="bestFrameUrl" alt="좋은 자세" />
         </div>
         <div v-if="worstFrameUrl" class="photo-block" @click="openModal(worstFrameUrl)">
-          <p>⚠️ 가장 나쁜 자세 ({{ worstNeckAngle }}°)</p>
+          <p> 가장 나쁜 자세 ({{ worstNeckAngle }}°)</p>
           <img :src="worstFrameUrl" alt="나쁜 자세" />
         </div>
       </div>
@@ -22,15 +22,15 @@
       <PhotoModal v-if="modalUrl" :photoUrl="modalUrl" @close="modalUrl = null" />
       <p class="mini-section-title">📷 거북목 & 어깨 측정</p>
       <!--  측정 타이틀 -->
-      <p class="camera-guide">📌정확한 측정을 위해 카메라는 반드시 사용자의 왼쪽에 설치해주세요.</p>
+      <p class="camera-guide">정확한 측정을 위해 카메라는 반드시 사용자의 왼쪽에 설치해주세요.</p>
 
       <!--  버튼 -->
       <div class="button-group" v-if="isCapturing && !measurementFinished">
-        <button class="stop-btn" @click="stopCamera">📴 측정 중지</button>
-        <button class="complete-btn" @click="finishMeasurement">✅ 측정 완료</button>
+        <button class="stop-btn" @click="stopCamera"> 측정 중지</button>
+        <button class="complete-btn" @click="finishMeasurement"> 측정 완료</button>
       </div>
       <div class="button-center" v-else>
-        <button class="start-btn" @click="toggleMeasurement">📸 측정 시작</button>
+        <button class="start-btn" @click="toggleMeasurement"> 측정 시작</button>
       </div>
 
       <!--  측정 중 비디오 영역 -->
@@ -45,20 +45,20 @@
       <!--  측정 결과 -->
       <div v-if="measurementFinished" class="result-info">
         <div class="stat-item">
-          <span class="label">📏 평균 목 각도:</span>
+          <span class="label"> 평균 목 각도:</span>
           <span class="value blue">{{ averageNeck.toFixed(2) }}°</span>
         </div>
         <div class="stat-item">
-          <span class="label">🖐️ 최대 목 각도:</span>
+          <span class="label"> 최대 목 각도:</span>
           <span class="value blue">{{ maxNeck.toFixed(2) }}°</span>
         </div>
         <div class="stat-item">
-          <span class="label">↕️ 어깨 상태:</span>
+          <span class="label">↕ 어깨 상태:</span>
           <span class="value blue">{{ shoulderStatus }} ({{ shoulderDiff }}px)</span>
         </div>
-        <div class="message">✅ 측정 결과가 저장되었습니다.</div>
+        <div class="message"> 측정 결과가 저장되었습니다.</div>
         <div class="button-center">
-          <button class="restart-btn" @click="restartMeasurement">🔁 다시 측정하기</button>
+          <button class="restart-btn" @click="restartMeasurement"> 다시 측정하기</button>
         </div>
       </div>
     </div>

@@ -15,7 +15,7 @@
         <MainPhotos :cameraActive="cameraActive" :bestPhoto="bestPhoto" :worstPhoto="worstPhoto"
           @startCamera="startCamera" @handlePhotoUploaded="handlePhotoUploaded" @openModal="openModal" />
         <button class="summary-btn" @click="showSummaryModal = true">
-          📊 자세 분석 요약 보기
+           자세 분석 요약 보기
         </button>
 
       </div>
