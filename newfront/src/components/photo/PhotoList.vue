@@ -116,7 +116,7 @@ const emit = defineEmits([
   'handlePhotoUploaded'
 ])
 
-// 🔁 아코디언 상태
+// 아코디언 상태
 const isBestOpen = ref(true)
 const isWorstOpen = ref(true)
 
@@ -124,14 +124,14 @@ const onDateInput = (event) => {
   emit('update:selectedDate', event.target.value)
 }
 
-// ✅ 필터링된 best 사진
+// 필터링된 best 사진
 const bestPhotos = computed(() => {
   return [...(props.filteredPhotos || [])]
     .filter(photo => photo.type === 'best')
     .sort((a, b) => new Date(b.uploaded_at) - new Date(a.uploaded_at))
 })
 
-// ✅ 필터링된 worst 사진
+//  필터링된 worst 사진
 const worstPhotos = computed(() => {
   return [...(props.filteredPhotos || [])]
     .filter(photo => photo.type === 'worst')
@@ -162,26 +162,26 @@ const getShoulderClass = (status) => {
 </script>
 
 <style scoped>
-/* ✅ 전체 박스 통일 */
+/* 전체 박스 통일 */
 .white-card {
   background-color: #ffffff;
   padding: 24px;
   border-radius: 16px;
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
-  max-width: 780px;     /* ✅ 오른쪽 카드 튀어나오지 않게 조정 */
+  max-width: 780px;     
   margin: 0 auto 32px;
   box-sizing: border-box;
 }
 
-/* ✅ 제목 스타일 */
+/* 제목 스타일 */
 .section-title-wrapper {
   display: flex;
   justify-content: center;
-  margin: 4px 0 20px;  /* ✅ 위 여백 확 줄이기 */
+  margin: 4px 0 20px;  /*  위 여백 확 줄이기 */
 }
 
 .section-title {
-  font-size: 30px;         /* ✅ 기존 28px → 30px */
+  font-size: 30px;         /* 기존 28px → 30px */
   font-weight: 800;
   color: #1976d2;
   display: inline-flex;
@@ -196,7 +196,7 @@ const getShoulderClass = (status) => {
   margin-bottom: 2px;
 }
 
-/* ✅ 선택된 사진 카드 */
+/*  선택된 사진 카드 */
 .selected-photo-card {
   padding: 28px;
   border: 2px solid #42a5f5;
@@ -230,7 +230,7 @@ const getShoulderClass = (status) => {
   width: 100%;
   max-width: 400px;
   margin: 0 auto;
-  aspect-ratio: 4 / 3; /* ✅ 항상 4:3 비율 유지 */
+  aspect-ratio: 4 / 3; /*  항상 4:3 비율 유지 */
   background-color: #f9f9f9;
   border-radius: 16px;
   border: 2px dashed #ccc;
@@ -282,8 +282,7 @@ const getShoulderClass = (status) => {
   background-color: #eeeeee;
   color: #555;
 }
-
-/* ✅ 날짜 필터 */
+/*  날짜 필터 */
 .date-filter {
   display: flex;
   align-items: center; /* 수직 중앙 정렬 */
@@ -292,12 +291,12 @@ const getShoulderClass = (status) => {
   border: 1px solid #d0e2ff;
   border-radius: 12px;
   background-color: #f0f8ff;
-  flex-wrap: nowrap;   /* ✅ 줄바꿈 방지 */
+  flex-wrap: nowrap;   /* 줄바꿈 방지 */
 }
 
 .date-label {
   font-size: 16px;
-  white-space: nowrap; /* ✅ 줄바꿈 방지 */
+  white-space: nowrap; /* 줄바꿈 방지 */
 }
 
 .date-input {
@@ -315,7 +314,7 @@ const getShoulderClass = (status) => {
   outline: none;
 }
 
-/* ✅ 분석 목록 제목 */
+/* 분석 목록 제목 */
 .mini-section-title {
   font-size: 20px;
   font-weight: 600;
@@ -326,7 +325,7 @@ const getShoulderClass = (status) => {
   gap: 6px;
 }
 
-/* ✅ 분석 목록 전체 */
+/* 분석 목록 전체 */
 .posture-section-wrapper {
   display: flex;
   flex-direction: column;
@@ -336,12 +335,12 @@ const getShoulderClass = (status) => {
   gap: 24px;
 }
 
-/* ✅ 개별 섹션 박스 */
+/*  개별 섹션 박스 */
 .section {
   width: 100%;
-  max-width: 450px;           /* 🔽 더 슬림하게 */
+  max-width: 450px;           
   background-color: #fafafa;
-  padding: 12px 16px;         /* 🔽 padding 줄임 */
+  padding: 12px 16px;         
   border-radius: 10px;
   border: 1px solid #ddd;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
@@ -360,7 +359,7 @@ const getShoulderClass = (status) => {
   box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
 }
 
-/* ✅ 섹션 헤더 */
+
 .section-header {
   display: flex;
   justify-content: space-between;
@@ -375,7 +374,6 @@ const getShoulderClass = (status) => {
   font-weight: bold;
 }
 
-/* ✅ 스크롤 영역 */
 .scroll-block {
   max-height: 240px;
   overflow-y: auto;
@@ -388,7 +386,7 @@ const getShoulderClass = (status) => {
   margin-bottom: 12px;
 }
 
-/* ✅ 전체 삭제 버튼 */
+
 .delete-all-btn {
   background-color: #e53935;
   color: #fff;
@@ -403,7 +401,6 @@ const getShoulderClass = (status) => {
   background-color: #c62828;
 }
 
-/* ✅ 전환 효과 */
 .fade-enter-active,
 .fade-leave-active {
   transition: all 0.3s ease;
@@ -413,6 +410,4 @@ const getShoulderClass = (status) => {
   opacity: 0;
   transform: translateY(-8px);
 }
-
-
 </style>

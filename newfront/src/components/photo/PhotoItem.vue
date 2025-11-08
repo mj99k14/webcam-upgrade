@@ -9,11 +9,11 @@
       </div>
 
       <div class="stat-row">
-        <span class="label">🐢 목 각도:</span>
+        <span class="label">목 각도:</span>
         <span>{{ formattedNeckAngle }}°</span>
       </div>
       <div class="stat-row">
-        <span class="label">🤷 어깨 상태:</span>
+        <span class="label"> 어깨 상태:</span>
         <span>{{ photo.shoulder_status || '정보 없음' }}</span>
       </div>
     </div>

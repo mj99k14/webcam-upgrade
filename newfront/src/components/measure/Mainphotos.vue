@@ -3,7 +3,7 @@
     <div class="main-measure-wrapper">
       <!--  제목 -->
       <div class="section-title-wrapper">
-        <h2 class="section-title"><span class="emoji">📊</span> 자세 측정</h2>
+        <h2 class="section-title"><span class="emoji"></span> 자세 측정</h2>
       </div>
 
       <!--  결과 사진 -->
@@ -20,7 +20,7 @@
 
 
       <PhotoModal v-if="modalUrl" :photoUrl="modalUrl" @close="modalUrl = null" />
-      <p class="mini-section-title">📷 거북목 & 어깨 측정</p>
+      <p class="mini-section-title"> 거북목 & 어깨 측정</p>
       <!--  측정 타이틀 -->
       <p class="camera-guide">정확한 측정을 위해 카메라는 반드시 사용자의 왼쪽에 설치해주세요.</p>
 
@@ -39,7 +39,7 @@
           <video ref="video" autoplay muted playsinline></video>
           <canvas ref="canvas"></canvas>
         </div>
-        <p class="timer-text">⏱ 측정 시간: {{ formattedTime }}</p>
+        <p class="timer-text"> 측정 시간: {{ formattedTime }}</p>
       </div>
 
       <!--  측정 결과 -->
@@ -141,7 +141,7 @@ export default {
 
   methods: {
     toggleMeasurement() {
-      alert("⚠️ 카메라는 반드시 사용자의 왼쪽에 설치해주세요!");
+      alert(" 카메라는 반드시 사용자의 왼쪽에 설치해주세요!");
       this.startCamera();
     },
     openModal(url) {
@@ -161,7 +161,7 @@ export default {
 
       pose = new window.Pose({ locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5/${file}` });
       pose.setOptions({ modelComplexity: 1, smoothLandmarks: true, minDetectionConfidence: 0.5, minTrackingConfidence: 0.5 });
-
+      //프레임 별로 계산 
       pose.onResults((results) => {
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
@@ -169,8 +169,8 @@ export default {
         ctx.drawImage(results.image, 0, 0, canvas.width, canvas.height);
 
         if (results.poseLandmarks) {
-          const ear = results.poseLandmarks[7];
-          const shoulder = results.poseLandmarks[11];
+          const ear = results.poseLandmarks[7]; //왼쪽 귀
+          const shoulder = results.poseLandmarks[11]; // 왼쪽 어꺠
           const dx = (ear.x - shoulder.x) * canvas.width;
           const dy = (ear.y - shoulder.y) * canvas.height;
           const angle = Math.atan2(dy, dx) * (180 / Math.PI);
@@ -183,7 +183,7 @@ export default {
           ctx.moveTo(ear.x * canvas.width, ear.y * canvas.height);
           ctx.lineTo(shoulder.x * canvas.width, shoulder.y * canvas.height);
           ctx.stroke();
-
+          //어꺠 기울기 계싼
           const left = results.poseLandmarks[11];
           const right = results.poseLandmarks[12];
           if (left && right) {
@@ -191,6 +191,7 @@ export default {
             this.shoulderDiff = Math.abs(diff).toFixed(2);
             this.shoulderStatus = Math.abs(diff) < 10 ? '어깨 수평 (정상)' : diff > 0 ? '왼쪽 어깨가 높음' : '오른쪽 어깨가 높음';
 
+            //화면에 시각화
             ctx.beginPath();
             ctx.strokeStyle = 'orange';
             ctx.lineWidth = 3;
@@ -201,12 +202,13 @@ export default {
 
           ctx.fillStyle = neckAngle > 135 ? 'red' : 'green';
           ctx.font = '20px Arial';
-          ctx.fillText(`🐢 ${neckAngle.toFixed(1)}°`, 10, 35);
+          ctx.fillText(` ${neckAngle.toFixed(1)}°`, 10, 35);
 
           ctx.fillStyle = 'black';
           ctx.font = '20px Arial';
-          ctx.fillText(`🤷 ${this.shoulderStatus}`, 10, 65);
+          ctx.fillText(` ${this.shoulderStatus}`, 10, 65);
 
+          //프레임 캡쳐 및 분석 데이터 축적
           this.frameCounter++;
           if (this.frameCounter % this.frameInterval === 0) {
             const imageCanvas = document.createElement('canvas');
@@ -236,6 +238,7 @@ export default {
         this.resetMeasurementState();
       }
     },
+    //측정 종료
     async finishMeasurement() {
       clearInterval(this.timerInterval);
       camera?.stop?.();
@@ -324,9 +327,8 @@ export default {
         });
       } catch (err) {
         console.error("측정 결과 저장 실패:", err);
-        alert("📛 측정 결과를 서버에 저장하는 도중 오류가 발생했습니다.");
+        alert(" 측정 결과를 서버에 저장하는 도중 오류가 발생했습니다.");
       }
-
 
       this.isCapturing = false;
       this.measurementFinished = true;
@@ -344,6 +346,7 @@ export default {
 
         const formData = new FormData();
         const user = JSON.parse(localStorage.getItem('user'));
+        //best/worst 두 장만 백엔드로 전송
         formData.append('user_id', user?.user_id);
         formData.append('photo', blob, `${type}_photo.jpg`);
         formData.append('neck_angle', neckAngle.toFixed(2));
@@ -358,8 +361,8 @@ export default {
 
         const data = await res.json();
 
-        console.log(`[📷 ${type} 업로드 응답]:`, data);
-        console.log(`[📷 ${type}] 받은 photo_id:`, data.photo_id);
+        console.log(`[ ${type} 업로드 응답]:`, data);
+        console.log(`[ ${type}] 받은 photo_id:`, data.photo_id);
 
         if (data.success) {
           this.$emit('handlePhotoUploaded');
@@ -410,11 +413,11 @@ export default {
     this.$watch('bestPhoto', (newVal) => {
       this.bestPhotoLocal = newVal;
       if (!newVal) {
-        console.log("❌ bestPhoto 없음 → bestFrameUrl 초기화");
+        console.log(" bestPhoto 없음 → bestFrameUrl 초기화");
         this.bestFrameUrl = '';
       }
       if (!newVal && !this.worstPhoto) {
-        console.log("🔥 모든 측정 사진 삭제됨 → measurementFinished 초기화");
+        console.log(" 모든 측정 사진 삭제됨 → measurementFinished 초기화");
         this.measurementFinished = false;
       }
     });
@@ -422,20 +425,18 @@ export default {
     this.$watch('worstPhoto', (newVal) => {
       this.worstPhotoLocal = newVal;
       if (!newVal) {
-        console.log("❌ worstPhoto 없음 → worstFrameUrl 초기화");
+        console.log(" worstPhoto 없음 → worstFrameUrl 초기화");
         this.worstFrameUrl = '';
       }
       if (!newVal && !this.bestPhoto) {
-        console.log("🔥 모든 측정 사진 삭제됨 → measurementFinished 초기화");
+        console.log(" 모든 측정 사진 삭제됨 → measurementFinished 초기화");
         this.measurementFinished = false;
       }
     });
-
-
-
   },
 
 };
+
 </script>
 <style scoped>
 /* 공통 제목 스타일 */
@@ -626,7 +627,7 @@ canvas {
   margin: 20px auto 0;
 }
 
-/* ✅ 결과 사진 */
+
 .result-photo-group-row {
   display: flex;
   justify-content: center;
@@ -649,7 +650,6 @@ canvas {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
-/* ✅ 자세 측정 박스 */
 .main-measure-wrapper {
   background-color: #ffffff;
   border-radius: 24px;

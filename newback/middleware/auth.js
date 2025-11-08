@@ -3,8 +3,6 @@ const secret = process.env.JWT_SECRET || "your_jwt_secret";
 
 const verifyToken = (req, res, next) => {
     const authHeader = req.headers["authorization"];
-
-
     console.log("?? 받은 Authorization 헤더:", authHeader);
 
     if (!authHeader) {
@@ -18,8 +16,6 @@ const verifyToken = (req, res, next) => {
 
     try {
         const decoded = jwt.verify(token, secret);
-
-
         console.log("? JWT 디코딩 결과:", decoded);
 
         req.user = decoded;
